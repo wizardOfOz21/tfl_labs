@@ -1,0 +1,2 @@
+(check-sat)
+(get-model)
