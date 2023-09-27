@@ -7,7 +7,6 @@
 
 class RegexToGlushkovConverter{
 private:
-    StateMachine automata;
     std::string inputRegex;
     int stateCount;
     struct FFL {
@@ -17,14 +16,12 @@ private:
         FFL()=default;
         ~FFL()=default;
     };
-public:
-    explicit RegexToGlushkovConverter(std::string  regex);
-    StateMachine buildGlushkovStateMachine();
-
-    // TODO: сделать приватными
     std::vector<std::pair<char, int>> computeFirst();
     std::vector<std::pair<char, int>> computeLast();
     std::unordered_map<std::string,std::vector<std::pair<char, int>>> computeFollow();
+public:
+    explicit RegexToGlushkovConverter(std::string  regex);
+    StateMachine buildGlushkovStateMachine();
 };
 
 #endif //TFL_LABS_REGEXTOGLUSHKOVCONVERTER_H

@@ -10,5 +10,8 @@ build-project:
 run:
 	./build/simplifier
 
+valgrind-run:
+	valgrind --tool=memcheck /build/simplifier
+
 check:
 	cppcheck --language=c++ ./project/src/*.cpp ./main.cpp

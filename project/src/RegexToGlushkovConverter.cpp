@@ -99,7 +99,33 @@ StateMachine RegexToGlushkovConverter::buildGlushkovStateMachine(){
     ffl.First=this->computeFirst();
     ffl.Last= this->computeLast();
     ffl.Follow = this->computeFollow();
-    return {};
+    StateMachine automata(stateCount,stateCount);
+    int count=0;
+    for (int i=0;i<inputRegex.length();i++){
+        char letter=inputRegex[i];
+        if (isalpha(letter)){
+            count++;
+        }
+        if (letter=='.') {
+            if (i+1<inputRegex.length() && inputRegex[i+1]=='*'){
+                automata.AddNonAlphabetSymbol(count,-1);
+                i++;
+            } else {
+                automata.AddNonAlphabetSymbol(count,1);
+            }
+        }
+    }
+    for (auto a : ffl.First){
+        automata.AddTransition(0,a);
+    }
+    for(auto & iter : ffl.Follow){
+        int curState = int(iter.first.c_str()[1]-'0');
+        for (auto a : iter.second){
+            automata.AddTransition(curState,a);
+        }
+    }
+    automata.SetFinalStates(ffl.Last);
+    return automata;
 }
 
 std::unordered_map<std::string,std::vector<std::pair<char, int>>> RegexToGlushkovConverter::computeFollow() {
