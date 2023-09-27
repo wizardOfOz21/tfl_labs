@@ -53,27 +53,28 @@ std::vector<std::pair<char, int>> RegexToGlushkovConverter::computeLast() {
     int countReal = 0;
     int countFact = 0;
     int i = inputRegex.length()-1;
-    std::stack<int> st;
+    std::stack<std::pair<char, int>> st;;
     std::vector<std::pair<char, int>> last;
     while (i >= 0) {
         switch (inputRegex[i]) {
             case '(':
                 st.pop();
                 if (!st.empty()){
-                    countFact=st.top();
-                } else if (countFact!=0) {
-                    countFact--;
+                    if (st.top().first=='*'){
+                        countFact=st.top().second;
+                        st.pop();
+                    }
                 }
                 break;
             case ')':
-                st.push(countFact);
+                st.emplace(')',countFact);
                 break;
             case '*':
-                st.push(countFact);
+                st.emplace('*',countFact);
                 break;
             case '|':
                 if (!st.empty()){
-                    countFact=st.top();
+                    countFact=st.top().second;
                 } else {
                     countFact=0;
                 }
@@ -87,6 +88,12 @@ std::vector<std::pair<char, int>> RegexToGlushkovConverter::computeLast() {
                     countFact++;
                 } else {
                     countReal++;
+                }
+                if (!st.empty()){
+                    if (st.top().first=='*'){
+                        countFact=st.top().second;
+                        st.pop();
+                    }
                 }
         }
         i--;
