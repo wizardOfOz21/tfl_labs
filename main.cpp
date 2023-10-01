@@ -1,8 +1,26 @@
 #include <iostream>
-#include "project/include/RegexToGlushkovConverter.h"
+#include "project/include/StateMachine.h"
 
 int main(){
-//    std::cout<<"Hello world"<<std::endl;
-    RegexToGlushkovConverter a("(ba|b)aa(a|ab)*");
-    auto follow = a.buildGlushkovStateMachine();
+    // (ba|b)*a*
+    std::vector<std::vector<char>> vect1 {{' ','b',' ','b','a'},
+                                          {' ',' ','a',' ',' '},
+                                          {' ','b',' ','b','a'},
+                                          {' ','b',' ','b','a'},
+                                          {' ',' ',' ',' ','a'}};
+    std::unordered_set<int> finalStates1 {4,2,3};
+    StateMachine automata1 (vect1, finalStates1,4);
+
+    //aa*b
+    std::vector<std::vector<char>> vect2 {{' ','a',' ',' '},
+                                          {' ',' ','a','b'},
+                                          {' ',' ','a','b'},
+                                          {' ',' ',' ',' '}};
+    std::unordered_set<int> finalStates2 {3};
+    std::cout<<"Hello"<<std::endl;
+    StateMachine automata2 (vect2,finalStates2,3);
+    auto res = StateMachine::ConcatStateMachines(automata1,automata2);
+    std::cout<<"Hello"<<std::endl;
+    res = StateMachine::UnionStateMachines(automata1,automata2);
+    res = StateMachine::IntersectStateMachines(automata1,automata2);
 }

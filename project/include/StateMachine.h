@@ -1,21 +1,31 @@
 #ifndef TFL_LABS_STATEMACHINE_H
 #define TFL_LABS_STATEMACHINE_H
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 
 class StateMachine{
 private:
-    std::vector<std::vector<std::pair<char, int>>> transitions;
-    std::vector<std::pair<char, int>> finalStates;
-    std::unordered_map<int,int> nonAlphabetSymbols;
+    int stateNum;
+    std::vector<std::vector<char>> transitions;
+    std::unordered_set<int> finalStates;
 
 public:
-    StateMachine()=default;
-    StateMachine(int statesNum, int signalsNum);
+    StateMachine(){
+        transitions=std::vector<std::vector<char>>();
+        stateNum=0;
+        finalStates=std::unordered_set<int>();
+    }
+    explicit StateMachine(int statesNum);
 
-    void AddTransition(int curState, std::pair<char,int> curSignal);
-    void SetFinalStates(std::vector<std::pair<char, int>>& final);
-    void AddNonAlphabetSymbol(int state,int count);
+    StateMachine(std::vector<std::vector<char>>& transitions1,std::unordered_set<int>& finalStates1,
+                 int statesCount1);
+
+    void AddTransition(int curState, char curSignal, int nextState);
+    void SetFinalStates(std::unordered_set<int> final);
+    [[nodiscard]] int GetStateNum() const;
+    static StateMachine ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2);
+    static StateMachine IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2);
+    static StateMachine UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2);
 
     ~StateMachine()=default;
 };

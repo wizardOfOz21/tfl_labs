@@ -12,3 +12,4 @@ _deps
 .vscode
 build
 cmake-build-debug
+tests
