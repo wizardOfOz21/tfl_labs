@@ -4,15 +4,16 @@
 #include <unordered_set>
 
 class StateMachine{
+    friend bool dfs (int v, std::vector<std::pair<char,char>>& used, StateMachine& automata);
 private:
-    int stateNum;
+    int stateCount;
     std::vector<std::vector<char>> transitions;
     std::unordered_set<int> finalStates;
 
 public:
     StateMachine(){
         transitions=std::vector<std::vector<char>>();
-        stateNum=0;
+        stateCount=0;
         finalStates=std::unordered_set<int>();
     }
     explicit StateMachine(int statesNum);

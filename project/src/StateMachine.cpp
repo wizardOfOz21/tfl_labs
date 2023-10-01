@@ -7,18 +7,18 @@ StateMachine::StateMachine(int statesNum){
     std::vector<char> v(statesNum+1, ' ');
     transitions=std::vector<std::vector<char>> (statesNum+1, v);
     finalStates=std::unordered_set<int>();
-    stateNum = statesNum;
+    stateCount = statesNum;
 }
 
 StateMachine::StateMachine(std::vector<std::vector<char>>& transitions1,std::unordered_set<int>& finalStates1,
                            int statesCount1){
     transitions=transitions1;
     finalStates=finalStates1;
-    stateNum=statesCount1;
+    stateCount=statesCount1;
 };
 
 int StateMachine::GetStateNum() const{
-    return stateNum;
+    return stateCount;
 }
 
 void StateMachine::AddTransition(int curState, char curSignal, int nextState){
@@ -60,6 +60,27 @@ StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const S
     return res;
 }
 
+bool dfs (int v, std::vector<std::pair<char,char>>& used, StateMachine& automata) {
+    used[v] = std::make_pair(true, false);
+    int count=0;
+    bool canToDel= false;
+    for (int i=0;i<automata.transitions[v].size();i++){
+        if (automata.transitions[v][i]!=' '){
+            if (!used[i].first) {
+                canToDel=dfs (i,used,automata);
+                if (!canToDel)
+                    count++;
+            }
+        }
+    }
+    auto it1 = automata.finalStates.find(v);
+    if (it1 == automata.finalStates.end() && count==0){
+        used[v].second= true;
+        return true;
+    }
+    return false;
+}
+
 StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
     std::unordered_map<int,std::pair<int,int>> Q;
     std::queue<int> que;
@@ -97,6 +118,27 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
         }
     }
     res.SetFinalStates(newFinalStates);
+    // Удаление лишнего
+    std::vector<std::pair<char,char>> used(res.stateCount+1);
+    used[0]=std::make_pair(true, false);
+    for (int i=0;i<res.transitions[0].size();i++){
+        if (res.transitions[0][i]!=' '){
+            dfs(i,used,res);
+        }
+    }
+    for (int i=used.size()-1;i>0;i--){
+        if (used[i].second || !used[i].first){
+            for(auto& row:res.transitions) row.erase(next(row.begin(), i));
+            res.transitions.erase(res.transitions.begin()+i);
+            res.stateCount--;
+            for (auto finalState: res.finalStates){
+                if (finalState>i){
+                    res.finalStates.erase(finalState);
+                    res.finalStates.insert(finalState-1);
+                }
+            }
+        }
+    }
     return res;
 }
 
