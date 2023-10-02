@@ -172,3 +172,84 @@ StateMachine StateMachine::UnionStateMachines(const StateMachine& stM1, const St
     res.SetFinalStates(newFinalStates);
     return res;
 }
+
+std::string StateMachine::ConvertToRegularExpr() {
+    if (stateCount==0){
+        return "^$";
+    }
+    int curStatesCount=stateCount+2;
+    std::vector<std::vector<std::string>> trans(stateCount+1,
+                                                std::vector<std::string>(stateCount+1,""));
+    for (int i=0;i<transitions.size();i++){
+        for (int j=0;j<transitions.size();j++){
+            if (transitions[i][j]!=' '){
+                trans[i][j]=std::string(1,transitions[i][j]);
+            }
+        }
+        auto it1 = finalStates.find(i);
+        if (it1 != finalStates.end()){
+            trans[i].emplace_back("@");
+        } else {
+            trans[i].emplace_back("");
+        }
+    }
+    bool zeroIsFinal= false;
+    if (trans[0][stateCount+1]=="@"){
+        zeroIsFinal= true;
+    }
+    int i=1;
+    std::unordered_set<int> alreadyDeleted;
+    while (curStatesCount>2){
+        for (int j=0;j<trans.size();j++){
+            auto it1 = alreadyDeleted.find(j);
+            if (!trans[j][i].empty() &&  i!=j && it1 == alreadyDeleted.end()){
+                for (int k=0;k<trans[i].size();k++) {
+                    it1 = alreadyDeleted.find(k);
+                    if (!trans[i][k].empty() && i != k && it1 == alreadyDeleted.end()) {
+                        std::string pathExpr;
+                        if (!trans[j][k].empty() && trans[j][k]!="@") {
+                            if (trans[j][k].length()>1 && trans[j][k].find('|') != std::string::npos){
+                                pathExpr += "("+trans[j][k]+")";
+                            } else {
+                                pathExpr += trans[j][k];
+                            }
+                            pathExpr += "|";
+                        }
+                        if (trans[j][i].length()>1 && trans[j][i].find('|') != std::string::npos){
+                            pathExpr += "("+trans[j][i]+")";
+                        } else {
+                            pathExpr += trans[j][i];
+                        }
+                        if (!trans[i][i].empty()) {
+                            if (trans[i][i].length()>1){
+                                pathExpr += "("+trans[i][i]+")";
+                            } else {
+                                pathExpr += trans[i][i];
+                            }
+                            pathExpr += "*";
+                        }
+                        if (trans[i][k]!="@"){
+                            it1=finalStates.find(i);
+                            if (it1!=finalStates.end() && k==stateCount+1){
+                                pathExpr+="|"+pathExpr;
+                            }
+                            if (trans[i][k].length()>1 && trans[i][k].find('|') != std::string::npos){
+                                pathExpr += "("+trans[i][k]+")";
+                            } else {
+                                pathExpr += trans[i][k];
+                            }
+                        }
+                        trans[j][k]=pathExpr;
+                    }
+                }
+            }
+        }
+        alreadyDeleted.insert(i);
+        i++;
+        curStatesCount--;
+    }
+    if (zeroIsFinal){
+        return "("+trans[0][stateCount+1]+")?";
+    }
+    return "("+trans[0][stateCount+1]+")";
+}

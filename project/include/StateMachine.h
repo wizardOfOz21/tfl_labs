@@ -27,6 +27,7 @@ public:
     static StateMachine ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     static StateMachine IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     static StateMachine UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2);
+    std::string ConvertToRegularExpr();
 
     ~StateMachine()=default;
 };
