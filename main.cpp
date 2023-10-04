@@ -1,5 +1,6 @@
 #include <iostream>
 #include "project/include/StateMachine.h"
+#include "project/include/RegexGenerator.h"
 
 int main(){
     // (ba|b)*a*
@@ -24,4 +25,6 @@ int main(){
     std::cout<<res.ConvertToRegularExpr()<<std::endl;
     res = StateMachine::IntersectStateMachines(automata1,automata2);
     std::cout<<res.ConvertToRegularExpr()<<std::endl;
+    RegexGenerator gen;
+    std::cout<<gen.GenerateRegex()<<std::endl;
 }
