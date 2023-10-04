@@ -13,4 +13,5 @@ add_executable(${PROJECT_NAME} main.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${SIMPLIFIER_LIBRARIES})
 
-#add_subdirectory(tests)
+add_subdirectory(test)
+# add_subdirectory(tests)
