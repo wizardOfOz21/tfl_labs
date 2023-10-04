@@ -1,6 +1,6 @@
 #include <iostream>
-#include "project/include/StateMachine.h"
-#include "project/include/RegexGenerator.h"
+#include "StateMachine.h"
+#include "RegexGenerator.h"
 
 int main(){
     // (ba|b)*a*

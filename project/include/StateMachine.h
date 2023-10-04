@@ -1,6 +1,7 @@
 #ifndef TFL_LABS_STATEMACHINE_H
 #define TFL_LABS_STATEMACHINE_H
 #include <vector>
+#include <string>
 #include <unordered_set>
 
 class StateMachine{
