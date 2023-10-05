@@ -5,6 +5,7 @@
 
 class StateMachine{
     friend bool dfs (int v, std::vector<std::pair<char,char>>& used, StateMachine& automata);
+    friend class StringGenerator;
 private:
     int stateCount;
     std::vector<std::vector<char>> transitions;

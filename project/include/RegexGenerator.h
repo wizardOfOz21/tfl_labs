@@ -21,7 +21,6 @@ private:
     std::string res;
 
     void generateRegex();
-    void generate_n_alt_regex();
     void generateConcRegex();
     void generateSimpleRegex();
     char randSymb();

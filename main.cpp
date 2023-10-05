@@ -1,6 +1,7 @@
 #include <iostream>
 #include "project/include/StateMachine.h"
 #include "project/include/RegexGenerator.h"
+#include "project/include/StringGenerator.h"
 
 int main(){
     // (ba|b)*a*
@@ -8,8 +9,8 @@ int main(){
                                           {' ',' ','a',' ',' '},
                                           {' ','b',' ','b','a'},
                                           {' ','b',' ','b','a'},
-                                          {' ',' ',' ',' ','a'}};
-    std::unordered_set<int> finalStates1 {4,2,3,0};
+                                          {' ',' ',' ',' ',' '}};
+    std::unordered_set<int> finalStates1 {4};
     StateMachine automata1 (vect1, finalStates1,4);
 
     //aa*b
@@ -27,4 +28,8 @@ int main(){
     std::cout<<res.ConvertToRegularExpr()<<std::endl;
     RegexGenerator gen;
     std::cout<<gen.GenerateRegex()<<std::endl;
+    StringGenerator sg;
+    for (int i=0;i<10;i++){
+        std::cout<<sg.GenerateString(automata1)<<std::endl;
+    }
 }
