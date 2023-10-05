@@ -1,6 +1,8 @@
 #ifndef TFL_LABS_STATEMACHINE_H
 #define TFL_LABS_STATEMACHINE_H
+#include <iostream>
 #include <vector>
+#include <string>
 #include <unordered_set>
 
 class StateMachine{
@@ -24,11 +26,14 @@ public:
 
     void AddTransition(int curState, char curSignal, int nextState);
     void SetFinalStates(std::unordered_set<int> final);
+    void AddFinalState(int);
     [[nodiscard]] int GetStateNum() const;
     static StateMachine ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     static StateMachine IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     static StateMachine UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     std::string ConvertToRegularExpr();
+    
+    static void To_Graph(const StateMachine& M, std::ostream& out);
 
     ~StateMachine()=default;
 };
