@@ -1,42 +1,51 @@
+#include <fstream>
+
 #include "parser/tset.hpp"
+#include "StateMachine.h"
 
 #include "gtest/gtest.h"
 
 TEST(TSet_Test, Union_Test) {
-    TSet a = 'a';
-    TSet b = 'b';
-    a.plus(b);
-    EXPECT_EQ(a.first, cset({'a', 'b'}));
+    cchar A{'a', 1};
+    cchar B{'b', 2};
+    TSet a = A;
+    a.plus(B);
+    EXPECT_EQ(a.first, cset({A, B}));
     EXPECT_EQ(a.follow, dset({}));
-    EXPECT_EQ(a.last, cset({'a', 'b'}));
+    EXPECT_EQ(a.last, cset({A, B}));
 }
 
 TEST(TSet_Test, Concat_Test) {
-    TSet a = 'a';
-    TSet b = 'b';
-    a.concat(b);
-    EXPECT_EQ(a.first, cset({'a'}));
-    EXPECT_EQ(a.follow, dset({cpair('a','b')}));
-    EXPECT_EQ(a.last, cset({'b'}));
+    cchar A{'a', 1};
+    cchar B{'b', 2};
+    cchar B2{'b', 2};
+    TSet a = A;
+    a.concat(B);
+    EXPECT_EQ(a.first, cset({A}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B)}));
+    EXPECT_EQ(a.last, cset({B}));
     a.e_flag = true;
-    a.concat(b);
-    EXPECT_EQ(a.first, cset({'a', 'b'}));
-    EXPECT_EQ(a.follow, dset({cpair('a','b'), cpair('b','b')}));
-    EXPECT_EQ(a.last, cset({'b'}));
+    a.concat(B2);
+    EXPECT_EQ(a.first, cset({A, B2}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B), cpair(B, B2)}));
+    EXPECT_EQ(a.last, cset({B2}));
 }
 
 TEST(TSet_Test, Iter_Test) {
-    TSet a = 'a';
-    a.concat('b');
+    cchar A{'a', 1};
+    cchar B{'b', 2};
+    TSet a = A;
+    a.concat(B);
     a.iter();
-    EXPECT_EQ(a.first, cset({'a'}));
-    EXPECT_EQ(a.follow, dset({cpair('a','b'), cpair('b','a')}));
-    EXPECT_EQ(a.last, cset({'b'}));
+    EXPECT_EQ(a.first, cset({A}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B), cpair(B, A)}));
+    EXPECT_EQ(a.last, cset({B}));
     EXPECT_EQ(a.e_flag, true);
-    a.concat('b');
-    EXPECT_EQ(a.first, cset({'a', 'b'}));
-    EXPECT_EQ(a.follow, dset({cpair('a','b'), cpair('b','a'), cpair('b','b')}));
-    EXPECT_EQ(a.last, cset({'b'}));
+    a.concat(B);
+    EXPECT_EQ(a.first, cset({A, B}));
+    EXPECT_EQ(a.follow,
+              dset({cpair(A, B), cpair(B, A), cpair(B, A)}));
+    EXPECT_EQ(a.last, cset({B}));
 }
 
 int main(int argc, char **argv) {

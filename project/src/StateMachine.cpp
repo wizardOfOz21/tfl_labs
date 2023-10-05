@@ -253,3 +253,22 @@ std::string StateMachine::ConvertToRegularExpr() {
     }
     return "("+trans[0][stateCount+1]+")";
 }
+
+void StateMachine::To_Graph(const StateMachine& M, std::ostream& out) {
+    out << "digraph {" << std::endl;
+    out << 0 << " [color=\"green\"]" << std::endl;
+    for (int state : M.finalStates) {
+        out << state << " [peripheries = 2]" << std::endl;
+    }
+    for (int from = 0; from < M.stateCount+1; ++from) {
+        const std::vector<char>& from_trans = M.transitions[from];
+        for (int to = 0; to < M.stateCount+1; ++to) {
+            if (from_trans[to] != ' ')
+                out << from << " -> " << to << " [label=\"" << from_trans[to]
+                    << "\"]" << std::endl;
+        }
+    }
+    out << "}" << std::endl;
+};
+
+void StateMachine::AddFinalState(int a) { finalStates.insert(a); };
