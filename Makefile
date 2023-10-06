@@ -8,10 +8,10 @@ build-project:
 	cd ./build && cmake .. && make --no-print-directory
 
 run:
-	./build/simplifier
+	./build/simplifier -r ab -f test.txt
 
 run-tests:
-	./build/tests/test_parser
+	./build/test/to_regex_test && ./build/test/tset_test && ./build/test/graph_test
 
 valgrind-run:
 	valgrind --tool=memcheck ./build/simplifier
