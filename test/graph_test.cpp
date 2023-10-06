@@ -39,6 +39,7 @@ TEST(TSet_Test, To_Graph_Test) {
     std::ofstream f("graph");
     StateMachine::To_Graph(M, f);
     f.close();
+    system("dot -Tjpg graph -O");
 }
 
 int main(int argc, char **argv) {

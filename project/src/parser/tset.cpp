@@ -23,6 +23,7 @@ void TSet::plus(const TSet& add) {
     set_union(follow, add.follow);
     set_union(last, add.last);
     e_flag = e_flag || add.e_flag;
+    num += add.num;
 }
 
 void TSet::concat(const TSet& add) {
@@ -51,6 +52,7 @@ void TSet::concat(const TSet& add) {
     }
 
     e_flag = e_flag && add.e_flag;
+    num += add.num;
 }
 
 void TSet::iter() {

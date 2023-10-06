@@ -1,6 +1,8 @@
 #include <fstream>
 
 #include "parser/tset.hpp"
+#include "parser/parser.hpp"
+#include "parser/vizualizer.hpp"
 #include "StateMachine.h"
 
 #include "gtest/gtest.h"
@@ -17,35 +19,48 @@ TEST(TSet_Test, Union_Test) {
 
 TEST(TSet_Test, Concat_Test) {
     cchar A{'a', 1};
-    cchar B{'b', 2};
     cchar B2{'b', 2};
+    cchar B3{'b', 3};
     TSet a = A;
-    a.concat(B);
-    EXPECT_EQ(a.first, cset({A}));
-    EXPECT_EQ(a.follow, dset({cpair(A, B)}));
-    EXPECT_EQ(a.last, cset({B}));
-    a.e_flag = true;
     a.concat(B2);
-    EXPECT_EQ(a.first, cset({A, B2}));
-    EXPECT_EQ(a.follow, dset({cpair(A, B), cpair(B, B2)}));
+    EXPECT_EQ(a.first, cset({A}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B2)}));
     EXPECT_EQ(a.last, cset({B2}));
+    a.e_flag = true;
+    a.concat(B3);
+    EXPECT_EQ(a.first, cset({A, B3}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B2), cpair(B2, B3)}));
+    EXPECT_EQ(a.last, cset({B3}));
 }
 
 TEST(TSet_Test, Iter_Test) {
     cchar A{'a', 1};
-    cchar B{'b', 2};
+    cchar B2{'b', 2};
+    cchar B3{'b', 3};
     TSet a = A;
-    a.concat(B);
+    a.concat(B2);
     a.iter();
     EXPECT_EQ(a.first, cset({A}));
-    EXPECT_EQ(a.follow, dset({cpair(A, B), cpair(B, A)}));
-    EXPECT_EQ(a.last, cset({B}));
+    EXPECT_EQ(a.follow, dset({cpair(A, B2), cpair(B2, A)}));
+    EXPECT_EQ(a.last, cset({B2}));
     EXPECT_EQ(a.e_flag, true);
-    a.concat(B);
-    EXPECT_EQ(a.first, cset({A, B}));
+    a.concat(B3);
+    EXPECT_EQ(a.first, cset({A, B3}));
     EXPECT_EQ(a.follow,
-              dset({cpair(A, B), cpair(B, A), cpair(B, A)}));
-    EXPECT_EQ(a.last, cset({B}));
+              dset({cpair(A, B2), cpair(B2, A), cpair(B2, B3)}));
+    EXPECT_EQ(a.last, cset({B3}));
+}
+
+TEST(Parser_Test, A_Test) {
+    string s = "ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a";
+    // string s = "a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a";
+    // string s = "ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)";
+    Regex r(s.data(), s.length());
+
+    Node* R = r.ParseR0();
+    std::cout << std::endl;
+    dump4(R, true);
+    std::cout << std::endl;
 }
 
 int main(int argc, char **argv) {

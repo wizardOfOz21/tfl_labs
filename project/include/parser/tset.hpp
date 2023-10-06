@@ -23,6 +23,13 @@ struct TSet {
     bool e_flag;
     int num;
 
+    TSet() {
+        first = last = {};
+        follow = {};
+        e_flag = false;
+        num = 0;
+    }
+
     TSet(cchar a) {
         first = last = {a};
         follow = {};
