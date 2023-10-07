@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <string>
+#include "parser/small_tree.hpp"
 
 using std::string;
 
@@ -22,12 +23,12 @@ enum class NodeType {
     REGEX,
 };
 
-
 struct Node {
     NodeType type;
     string value = "";
     Node* left;
     Node* right;
+    // m_node* tree; // дерево разбора регулярки, если это регулярка
 
     Node(NodeType t, const string& v, Node* l = nullptr, Node* r = nullptr)
         : type(t), value(v), left(l), right(r) {}
@@ -35,8 +36,8 @@ struct Node {
 
     bool is_regex() { return type == NodeType::REGEX; }
 
-    static Node* regex(string s) {
-        return new Node(s);
+    static Node* regex(char s) {
+        return new Node(string(1,s));
     }
 
     static Node* paren(Node* arg) {
@@ -130,7 +131,7 @@ class Parser {
 
     Node* ParseR0() {
         Node* R = ParseR();
-        if (!R) return Node::regex("");
+        if (!R) return Node::regex(0);
         return R;
     }
 
@@ -196,6 +197,7 @@ class Parser {
             } else {
                 node_accum =
                     Node::concat(node_accum, Node::concat(regex_accum, F));
+                regex_accum = nullptr;
             }
             pos = next;
             Node* L = ParseL();
@@ -222,7 +224,7 @@ class Parser {
         char a = nchar();
         if (Check(alf, a) || a == '.') {
             next++;
-            return Node::regex(string(1,a));
+            return Node::regex(a);
         }
         if (a == '(') {
             int pos = next;

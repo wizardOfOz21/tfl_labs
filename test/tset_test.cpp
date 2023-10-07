@@ -52,9 +52,10 @@ TEST(TSet_Test, Iter_Test) {
 }
 
 TEST(Parser_Test, A_Test) {
-    // string s = "ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a";
-    string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
-    // string s = "ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)";
+    // string s = "^ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a$";
+    // string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
+    // string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
+    string s = "^a*((?=bb$)|(?=a|a$))|a((b|aa)a)((((aa((((b))))))))$";
     Parser r(s.data(), s.length());
 
     Node* R = r.Parse();
