@@ -28,10 +28,64 @@ struct Node {
     Node* left;
     Node* right;
 
-    void Iter() {
-        assert(type == NodeType::REGEX); // loockahead под звездочкой не бывает
-        value += "*";
-        return;
+    Node(NodeType t, const string& v, Node* l = nullptr, Node* r = nullptr)
+        : type(t), value(v), left(l), right(r) {}
+    Node(char a) : type(NodeType::REGEX), value(string(1, a)), left(nullptr), right(nullptr) {}
+
+    bool is_regex() { return type == NodeType::REGEX; }
+
+    static Node* paren(Node* arg) {
+        assert(arg);
+        if (arg->is_regex()) {
+            arg->value = "(" + arg->value + ")";
+            return arg;
+        }
+        return arg;
+    }
+
+    static Node* iter(Node* arg) {
+        assert(arg);
+        assert(arg->type ==
+               NodeType::REGEX);  // lookahead под звездочкой не бывает
+        arg->value += "*";
+        return arg;
+    }
+
+    static Node* lookahead(Node* arg, bool is_end) {
+        assert(arg);
+        if (is_end) return arg;
+        arg->value += ".*";
+        return arg;
+    }
+
+    static Node* insert(Node* arg1, Node* arg2) {
+        assert(arg1);
+        if (!arg2) {
+            arg2 = new Node{NodeType::REGEX, ""};
+        }
+        return new Node{NodeType::INSERT, "^", arg1, arg2};
+    }
+
+    static Node* concat(Node* arg1, Node* arg2) {
+        if (!arg1) return arg2;  // соптимизировать, чтобы не было кучи проверок
+        if (!arg2) return arg1;
+        if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
+            arg1->value += arg2->value;
+            delete arg2;
+            return arg1;
+        }
+        return new Node{NodeType::CONCAT, ".", arg1, arg2};
+    }
+
+    static Node* alter(Node* arg1, Node* arg2) {
+        if (!arg1) return arg2;  // соптимизировать, чтобы не было кучи проверок
+        if (!arg2) return arg1;
+        if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
+            arg1->value += "|" + arg2->value;
+            delete arg2;
+            return arg1;
+        }
+        return new Node{NodeType::ALTER, "|", arg1, arg2};
     }
 };
 
@@ -61,76 +115,51 @@ class Regex {
     }
 
     Node* ParseR0() {
-        int pos = next;
         Node* R = ParseR();
-        if (!R) {
-            next = pos;
-            return new Node{NodeType::REGEX, ""};
-        }
+        if (!R) return new Node{NodeType::REGEX, ""};
         return R;
     }
 
     Node* ParseR() {
-        int pos = next;
+        Node* node_accum = nullptr;
+        Node* regex_accum = nullptr;
+
         Node* T = ParseT();
-        if (!T) {
-            next = pos;
-            return nullptr;  // если не T, то ничего
-        }
-
-        Node* root = nullptr;
-        string regex = "";
-
         while (T) {
             if (T->type == NodeType::REGEX) {
-                if (regex == "") regex = T->value; 
-                else regex += "|" + T->value;
-                delete T;
+                regex_accum = Node::alter(regex_accum, T);
             } else {
-                if (!root)
-                    root = T;
-                else {
-                    root = new Node{NodeType::ALTER, "|", root, T};
-                }
+                node_accum = Node::alter(node_accum, T);
             }
             if (nchar() != _PLUS) {
-                if (regex == "") return root;
-                if (!root) return new Node{NodeType::REGEX, regex};
-                return new Node{NodeType::ALTER, "|", root,
-                                new Node{NodeType::REGEX, regex}};
+                return Node::alter(node_accum, regex_accum);
             }
             next++;
-            pos = next;
             T = ParseT();
         }
 
-        next = pos;
         return nullptr;  // был +, а дальше пусто
     }
 
     Node* ParseL() {
-        int pos = 0;
         if (is_lookahead()) {
+            int pos = next;
             next += 3;
-            pos = next;
-            Node* R0 = ParseR0();
-            assert(R0->type ==
-                   NodeType::REGEX);  // не бывает lookahead внутри lookahead
+            Node* L = ParseR0();  // R0 всегда парсится
+            assert(L->is_regex());  // не бывает lookahead внутри lookahead
             char c = nchar();
-            if (c == _RPAREN) {
-                R0->value += ".*";
-            } else if (c != _END || nchar(1) != _RPAREN) {
+            if (c != _END || nchar(1) != _RPAREN) {
                 next = pos;
                 return nullptr;  // не закрытый lookahead
             }
+            L = Node::lookahead(L, c != _RPAREN);
             next += 2;
             pos = next;
             Node* T = ParseT();
             if (!T) {
-                next = pos;
-                T = new Node{NodeType::REGEX, ""};
+                next = pos;  // убрать, если T безопасна
             }
-            return new Node{NodeType::INSERT, "^", T, R0};
+            return Node::insert(L, T);
         }
         return nullptr;
     }
@@ -142,33 +171,17 @@ class Regex {
 
         next = pos;
         Node* F = ParseF();
-        if (!F) {
-            next = pos;
-            return nullptr;  // если не lookahead и F, то уже ничего
-        }
+        if (!F) return nullptr;  // если не lookahead и не F, то уже ничего
 
-        Node* root = nullptr;
-        string regex = "";
+        Node* node_accum = nullptr;
+        Node* regex_accum = nullptr;
 
         while (F) {
-            if (F->type == NodeType::REGEX) {
-                regex += F->value;
-                delete F;
+            if (F->is_regex()) {
+                regex_accum = Node::concat(regex_accum, F);
             } else {
-                if (regex != "") {
-                    if (!root) {
-                        root = new Node{NodeType::CONCAT, ".",
-                                        new Node{NodeType::REGEX, regex}, F};
-                    } else {
-                        root = new Node{
-                            NodeType::CONCAT, ".", root,
-                            new Node{NodeType::CONCAT, ".",
-                                     new Node{NodeType::REGEX, regex}, F}};
-                    }
-                    regex = "";
-                } else {
-                    root = new Node{NodeType::CONCAT, ".", root, F};
-                }
+                node_accum =
+                    Node::concat(node_accum, Node::concat(regex_accum, F));
             }
             pos = next;
             Node* L = ParseL();
@@ -177,54 +190,36 @@ class Regex {
             F = ParseF();
         }
 
-        if (regex != "") {
-            if (!root) {
-                return new Node{NodeType::REGEX, regex};
-            } else {
-                return new Node{NodeType::CONCAT, ".", root,
-                                new Node{NodeType::REGEX, regex}};
-            }
-        }
-
-        return root;
+        return Node::concat(node_accum, regex_accum);
     }
 
     Node* ParseF() {
         int pos = next;
         Node* A = ParseA();
-        if (!A) {
-            next = pos;
-            return nullptr;  // если не A, то ничего
-        }
+        if (!A) return nullptr;  // если не A, то ничего
         if (nchar() == '*') {
             next++;
-            A->Iter();
+            A = Node::iter(A);
         }
         return A;
     }
 
     Node* ParseA() {
         char a = nchar();
-        if (Check(alf, a)) {
-            Node* res = new Node{NodeType::REGEX, string(1, a)};
+        if (Check(alf, a) || a == '.') {
             next++;
-            return res;
-        }
-        if (a == '.') {
-            Node* res = new Node{NodeType::REGEX, string(1, a)};
-            next++;
-            return res;
+            return new Node(a);
         }
         if (a == '(') {
+            int pos = next;
             next++;
-            Node* R = ParseR();
-            if (nchar() != ')') return nullptr;
-            next++;
-            if (R->type == NodeType::REGEX) {
-                R->value = "(" + R->value + ")";
-                return R;
+            Node* R0 = ParseR0();  // не проверяем, так как R0 всегда парсится
+            if (nchar() != ')') {
+                next = pos;
+                return nullptr;
             }
-            return R;
+            next++;
+            return Node::paren(R0);
         }
         return nullptr;
     }
