@@ -37,8 +37,8 @@ struct TSet {
         num = 1;
     }
 
-    void plus(const TSet& add);
-    void concat(const TSet& add);
-    void iter();
+    static TSet* plus(TSet* arg1, TSet* arg2);
+    static TSet* concat(TSet* arg1, TSet* arg2);
+    static TSet* iter(TSet* arg);
     StateMachine to_machine();
 };

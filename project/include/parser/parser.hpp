@@ -28,7 +28,7 @@ struct Node {
     string value = "";
     Node* left;
     Node* right;
-    // m_node* tree; // дерево разбора регулярки, если это регулярка
+    m_node* tree; // дерево разбора регулярки, если это регулярка
 
     Node(NodeType t, const string& v, Node* l = nullptr, Node* r = nullptr)
         : type(t), value(v), left(l), right(r) {}
@@ -37,7 +37,9 @@ struct Node {
     bool is_regex() { return type == NodeType::REGEX; }
 
     static Node* regex(char s) {
-        return new Node(string(1,s));
+        Node* res = new Node(string(1,s));
+        res->tree = new m_node{node_type::SYMBOL, s};
+        return res;
     }
 
     static Node* paren(Node* arg) {
@@ -54,6 +56,7 @@ struct Node {
         assert(arg->type ==
                NodeType::REGEX);  // lookahead под звездочкой не бывает
         arg->value += "*";
+        arg->tree = new m_node{node_type::ITER, '*', arg->tree};
         return arg;
     }
 
@@ -61,13 +64,15 @@ struct Node {
         assert(arg);
         if (is_end) return arg;
         arg->value += ".*";
+        arg->tree = new m_node{node_type::CONCAT, '.', arg->tree, new m_node{node_type::ITER, '*', 
+        new m_node{node_type::SYMBOL, '.'}}};
         return arg;
     }
 
     static Node* insert(Node* arg1, Node* arg2) {
         assert(arg1);
         if (!arg2) {
-            arg2 = new Node{NodeType::REGEX, ""};
+            arg2 = Node::regex(0);
         }
         return new Node{NodeType::INSERT, "^", arg1, arg2};
     }
@@ -77,6 +82,7 @@ struct Node {
         if (!arg2) return arg1;
         if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
             arg1->value += arg2->value;
+            arg1->tree = new m_node{node_type::CONCAT, '.', arg1->tree, arg2->tree};
             delete arg2;
             return arg1;
         }
@@ -88,6 +94,7 @@ struct Node {
         if (!arg2) return arg1;
         if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
             arg1->value += "|" + arg2->value;
+            arg1->tree = new m_node{node_type::ALTER, '|', arg1->tree, arg2->tree};
             delete arg2;
             return arg1;
         }

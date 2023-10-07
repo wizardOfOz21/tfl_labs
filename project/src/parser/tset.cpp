@@ -18,50 +18,55 @@ std::set<T>& set_union(std::set<T>& A, const std::set<T>& B) {
     return A;
 }
 
-void TSet::plus(const TSet& add) {
-    set_union(first, add.first);
-    set_union(follow, add.follow);
-    set_union(last, add.last);
-    e_flag = e_flag || add.e_flag;
-    num += add.num;
+TSet* TSet::plus(TSet* arg1, TSet* arg2) {
+    set_union(arg1->first, arg2->first);
+    set_union(arg1->follow, arg2->follow);
+    set_union(arg1->last, arg2->last);
+    arg1->e_flag = arg2->e_flag || arg2->e_flag;
+    arg1->num += arg2->num;
+    delete arg2;
+    return arg1;
 }
 
-void TSet::concat(const TSet& add) {
-    if (e_flag) {
-        for (cchar b : add.first) {
-            first.insert(b);
+TSet* TSet::concat(TSet* arg1, TSet* arg2) {
+    if (arg1->e_flag) {
+        for (cchar b : arg2->first) {
+            arg1->first.insert(b);
         }
     }
 
-    for (auto ab : add.follow) {
-        follow.insert(ab);
+    for (auto ab : arg2->follow) {
+        arg1->follow.insert(ab);
     }
 
-    for (cchar a : last) {
-        for (cchar b : add.first) {
-            follow.insert(pair(a, b));
+    for (cchar a : arg1->last) {
+        for (cchar b : arg2->first) {
+            arg1->follow.insert(pair(a, b));
         }
     }
 
-    if (add.e_flag) {
-        for (cchar b : add.last) {
-            last.insert(b);
+    if (arg2->e_flag) {
+        for (cchar b : arg2->last) {
+            arg1->last.insert(b);
         }
     } else {
-        last = add.last;
+        arg1->last = arg2->last;
     }
 
-    e_flag = e_flag && add.e_flag;
-    num += add.num;
+    arg1->e_flag = arg1->e_flag && arg2->e_flag;
+    arg1->num += arg2->num;
+    delete arg2;
+    return arg1;
 }
 
-void TSet::iter() {
-    for (cchar a : last) {
-        for (cchar b : first) {
-            bool c = follow.insert(pair(a, b)).second;
+TSet* TSet::iter(TSet* arg) {
+    for (cchar a : arg->last) {
+        for (cchar b : arg->first) {
+            bool c = arg->follow.insert(pair(a, b)).second;
         }
     }
-    e_flag = true;
+    arg->e_flag = true;
+    return arg;
 }
 
 StateMachine TSet::to_machine() {
