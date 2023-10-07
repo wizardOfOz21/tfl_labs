@@ -22,6 +22,7 @@ enum class NodeType {
     REGEX,
 };
 
+
 struct Node {
     NodeType type;
     string value = "";
@@ -30,9 +31,13 @@ struct Node {
 
     Node(NodeType t, const string& v, Node* l = nullptr, Node* r = nullptr)
         : type(t), value(v), left(l), right(r) {}
-    Node(char a) : type(NodeType::REGEX), value(string(1, a)), left(nullptr), right(nullptr) {}
+    Node(string v) : type(NodeType::REGEX), value(v), left(nullptr), right(nullptr) {}
 
     bool is_regex() { return type == NodeType::REGEX; }
+
+    static Node* regex(string s) {
+        return new Node(s);
+    }
 
     static Node* paren(Node* arg) {
         assert(arg);
@@ -91,7 +96,7 @@ struct Node {
 
 string alf = "ab";
 
-class Regex {
+class Parser {
    private:
     const char* s;
     int size;
@@ -99,7 +104,7 @@ class Regex {
     int index;
 
    public:
-    Regex(const char* s_, int size_) : s(s_), size(size_), next(0) {}
+    Parser(const char* s_, int size_) : s(s_), size(size_), next(0) {}
 
     char nchar(int i = 0) { return next + i < size ? s[next + i] : _EOF; }
 
@@ -114,9 +119,18 @@ class Regex {
         return nchar() == '(' && nchar(1) == '?' && nchar(2) == '=';
     }
 
+    Node* Parse() {
+        if (nchar() != _START) return nullptr;
+        next++;
+        Node* R0 = ParseR0();
+        if (nchar() != _END) return nullptr;
+        next++;
+        return R0;
+    }
+
     Node* ParseR0() {
         Node* R = ParseR();
-        if (!R) return new Node{NodeType::REGEX, ""};
+        if (!R) return Node::regex("");
         return R;
     }
 
@@ -126,7 +140,7 @@ class Regex {
 
         Node* T = ParseT();
         while (T) {
-            if (T->type == NodeType::REGEX) {
+            if (T->is_regex()) {
                 regex_accum = Node::alter(regex_accum, T);
             } else {
                 node_accum = Node::alter(node_accum, T);
@@ -208,7 +222,7 @@ class Regex {
         char a = nchar();
         if (Check(alf, a) || a == '.') {
             next++;
-            return new Node(a);
+            return Node::regex(string(1,a));
         }
         if (a == '(') {
             int pos = next;

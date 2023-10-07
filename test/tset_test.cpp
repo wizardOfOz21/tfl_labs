@@ -53,11 +53,11 @@ TEST(TSet_Test, Iter_Test) {
 
 TEST(Parser_Test, A_Test) {
     // string s = "ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a";
-    string s = "a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a";
+    string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
     // string s = "ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)";
-    Regex r(s.data(), s.length());
+    Parser r(s.data(), s.length());
 
-    Node* R = r.ParseR0();
+    Node* R = r.Parse();
     std::cout << std::endl;
     dump4(R, true);
     std::cout << std::endl;
