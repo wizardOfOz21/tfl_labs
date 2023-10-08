@@ -54,13 +54,15 @@
 TEST(Parser_Test, A_Test) {
     // string s = "^ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a$";
     // string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
-    string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
+    // string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
     // string s = "^a*((?=bb$)|(?=a|a$))|a((b|aa)a)((((aa((((b))))))))$";
     // string s = "^a|b|(ab)*|ba(ab*(ab))$";
     // string s = "^(a(ab)*)*|(ba)*$";
+    string s = "^b(b(?=ab*a*a|a$)((a)))$";
     Parser r(s.data(), s.length());
 
     Node* R = r.Parse();
+    dump4(R, true);
     StateMachine M = R->to_machine_dfs();
     std::ofstream f("graph");
     StateMachine::To_Graph(M, f);

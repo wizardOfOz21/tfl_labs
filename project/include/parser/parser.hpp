@@ -250,7 +250,7 @@ class Parser {
             }
             pos = next;
             Node* L = ParseL();
-            if (L) return L;
+            if (L) return Node::concat(node_accum, Node::concat(regex_accum, L));
             next = pos;
             F = ParseF();
         }
