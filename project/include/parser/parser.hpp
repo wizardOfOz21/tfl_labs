@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <string>
+
 #include "parser/small_tree.hpp"
 
 using std::string;
@@ -28,17 +29,18 @@ struct Node {
     string value = "";
     Node* left;
     Node* right;
-    m_node* tree; // дерево разбора регулярки, если это регулярка
+    m_node* r_tree;  // дерево разбора регулярки, если это регулярка
 
     Node(NodeType t, const string& v, Node* l = nullptr, Node* r = nullptr)
         : type(t), value(v), left(l), right(r) {}
-    Node(string v) : type(NodeType::REGEX), value(v), left(nullptr), right(nullptr) {}
+    Node(string v)
+        : type(NodeType::REGEX), value(v), left(nullptr), right(nullptr) {}
 
     bool is_regex() { return type == NodeType::REGEX; }
 
     static Node* regex(char s) {
-        Node* res = new Node(string(1,s));
-        res->tree = new m_node{node_type::SYMBOL, s};
+        Node* res = new Node(string(1, s));
+        res->r_tree = new m_node{node_type::SYMBOL, s};
         return res;
     }
 
@@ -56,7 +58,7 @@ struct Node {
         assert(arg->type ==
                NodeType::REGEX);  // lookahead под звездочкой не бывает
         arg->value += "*";
-        arg->tree = new m_node{node_type::ITER, '*', arg->tree};
+        arg->r_tree = new m_node{node_type::ITER, '*', arg->r_tree};
         return arg;
     }
 
@@ -64,8 +66,10 @@ struct Node {
         assert(arg);
         if (is_end) return arg;
         arg->value += ".*";
-        arg->tree = new m_node{node_type::CONCAT, '.', arg->tree, new m_node{node_type::ITER, '*', 
-        new m_node{node_type::SYMBOL, '.'}}};
+        arg->r_tree =
+            new m_node{node_type::CONCAT, '.', arg->r_tree,
+                       new m_node{node_type::ITER, '*',
+                                  new m_node{node_type::SYMBOL, '.'}}};
         return arg;
     }
 
@@ -80,9 +84,11 @@ struct Node {
     static Node* concat(Node* arg1, Node* arg2) {
         if (!arg1) return arg2;  // соптимизировать, чтобы не было кучи проверок
         if (!arg2) return arg1;
-        if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
+        if (arg1->type == NodeType::REGEX &&
+            arg2->type == NodeType::REGEX) {  // повторная проверка
             arg1->value += arg2->value;
-            arg1->tree = new m_node{node_type::CONCAT, '.', arg1->tree, arg2->tree};
+            arg1->r_tree =
+                new m_node{node_type::CONCAT, '.', arg1->r_tree, arg2->r_tree};
             delete arg2;
             return arg1;
         }
@@ -92,17 +98,53 @@ struct Node {
     static Node* alter(Node* arg1, Node* arg2) {
         if (!arg1) return arg2;  // соптимизировать, чтобы не было кучи проверок
         if (!arg2) return arg1;
-        if (arg1->type == NodeType::REGEX && arg2->type == NodeType::REGEX) { // повторная проверка
+        if (arg1->type == NodeType::REGEX &&
+            arg2->type == NodeType::REGEX) {  // повторная проверка
             arg1->value += "|" + arg2->value;
-            arg1->tree = new m_node{node_type::ALTER, '|', arg1->tree, arg2->tree};
+            arg1->r_tree =
+                new m_node{node_type::ALTER, '|', arg1->r_tree, arg2->r_tree};
             delete arg2;
             return arg1;
         }
         return new Node{NodeType::ALTER, "|", arg1, arg2};
     }
-};
 
-string alf = "ab";
+    StateMachine to_machine_dfs() {
+        switch (type) {
+            case NodeType::ALTER: {
+                assert(left);
+                assert(right);
+                StateMachine A = left->to_machine_dfs();
+                StateMachine B = right->to_machine_dfs();
+                return StateMachine::UnionStateMachines(A,B);
+            }
+            case NodeType::CONCAT: {
+                assert(left);
+                assert(right);
+                StateMachine A = left->to_machine_dfs();
+                StateMachine B = right->to_machine_dfs();
+                return StateMachine::ConcatStateMachines(A,B);
+            }
+            case NodeType::ITER: {
+                assert(false); // lookahead под итерацией
+                return StateMachine();
+            }
+            case NodeType::INSERT: {
+                assert(left);
+                assert(right);
+                StateMachine A = left->to_machine_dfs();
+                StateMachine B = right->to_machine_dfs();
+                return StateMachine::IntersectStateMachines(A,B);
+            }
+            case NodeType::REGEX: {
+                assert(r_tree);
+                return r_tree->to_machine();
+            }
+            default:
+                return StateMachine();
+        }
+    }
+};
 
 class Parser {
    private:

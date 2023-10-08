@@ -1,4 +1,5 @@
 #include "parser/tset.hpp"
+#include <cassert>
 
 using std::string;
 
@@ -16,36 +17,51 @@ struct m_node {
     m_node* left = nullptr;
     m_node* right = nullptr;
     
-    TSet* dfs() {
+    StateMachine to_machine() {
+        count = 1;
+        return dfs().to_machine();
+    }
+
+    TSet dfs() {
         switch (type) {
             case node_type::ALTER:
             {
                 assert(left);
                 assert(right);
-                TSet* A = left->dfs();
-                TSet* B = right->dfs();
-                return TSet::plus(A,B);
+                TSet A = left->dfs();
+                TSet B = right->dfs();
+                A.plus(B);
+                return A;
             }
             case node_type::CONCAT:
             {
                 assert(left);
                 assert(right);
-                TSet* A = left->dfs();
-                TSet* B = right->dfs();
-                return TSet::concat(A,B);
+                TSet A = left->dfs();
+                TSet B = right->dfs();
+                A.concat(B);
+                return A;
             }
             case node_type::ITER:
             {
                 assert(left);
                 assert(!right);
-                TSet* A = left->dfs();
-                return TSet::iter(A);
+                TSet A = left->dfs();
+                A.iter();
+                return A;
             }
             case node_type::SYMBOL:
             {
-                if (s == 0) return new TSet();
-                return new TSet(cchar{s,count++});
+                if (s == 0) return TSet();
+                if (s == '.') {
+                    int c = count;
+                    count += alf.length();
+                    return TSet(cchar{s,c});
+                }
+                return TSet(cchar{s,count++});
             }
+            default: 
+                return TSet();
         }
     }
 };
