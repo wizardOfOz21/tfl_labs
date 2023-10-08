@@ -6,8 +6,10 @@
 #include <unordered_set>
 
 class StateMachine{
-    friend bool dfs (int v, std::vector<std::pair<char,char>>& used, StateMachine& automata);
+    friend void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed,
+                     StateMachine& automata);
     friend class StringGenerator;
+    friend void fixStates(StateMachine& res);
 private:
     int stateCount;
     std::vector<std::vector<char>> transitions;
@@ -32,7 +34,7 @@ public:
     static StateMachine IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     static StateMachine UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2);
     std::string ConvertToRegularExpr();
-    
+
     static void To_Graph(const StateMachine& M, std::ostream& out);
 
     ~StateMachine()=default;

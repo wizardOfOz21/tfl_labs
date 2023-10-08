@@ -1,6 +1,7 @@
 #include <string>
 #include <unordered_map>
 #include <queue>
+#include <set>
 #include "../include/StateMachine.h"
 
 StateMachine::StateMachine(int statesNum){
@@ -60,25 +61,41 @@ StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const S
     return res;
 }
 
-bool dfs (int v, std::vector<std::pair<char,char>>& used, StateMachine& automata) {
-    used[v] = std::make_pair(true, false);
-    int count=0;
-    bool canToDel= false;
-    for (int i=0;i<automata.transitions[v].size();i++){
-        if (automata.transitions[v][i]!=' '){
-            if (!used[i].first) {
-                canToDel=dfs (i,used,automata);
-                if (!canToDel)
-                    count++;
+void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed, StateMachine& automata) {
+    curUsed[v] = true;
+    globalUsed.insert(v);
+    for (int i=0;i<automata.transitions.size();i++){
+        if (automata.transitions[i][v]!=' ' && !curUsed[i]){
+            dfs(i,globalUsed,curUsed,automata);
+        }
+    }
+
+}
+
+void fixStates(StateMachine& res){
+    std::unordered_set<int> globalUsed;
+    for (auto finalState: res.finalStates){
+        std::vector<char> curUsed(res.stateCount+1);
+        dfs(finalState,globalUsed,curUsed,res);
+    }
+    for (int i=res.transitions.size()-1;i>0;i--){
+        auto it1 = globalUsed.find(i);
+        if (it1==res.finalStates.end()){
+            for(auto& row:res.transitions) row.erase(next(row.begin(), i));
+            res.transitions.erase(res.transitions.begin()+i);
+            res.stateCount--;
+            std::set<int> needToChange;
+            for (auto finalState: res.finalStates){
+                if (finalState>i){
+                    needToChange.insert(finalState);
+                }
+            }
+            for (auto j : needToChange){
+                res.finalStates.erase(j);
+                res.finalStates.insert(j-1);
             }
         }
     }
-    auto it1 = automata.finalStates.find(v);
-    if (it1 == automata.finalStates.end() && count==0){
-        used[v].second= true;
-        return true;
-    }
-    return false;
 }
 
 StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
@@ -99,8 +116,16 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
                 for (int j=0;j<stM2.transitions[curState.second].size();j++){
                     char curTransStM2=stM2.transitions[curState.second][j];
                     if (curTransStM2==curTransStM1){
-                        if (Q[curStateCount].first==i && Q[curStateCount].second==j){
-                            break;
+                        bool f= false;
+                        for (auto state : Q) {
+                            if (state.second.first==i && state.second.second==j){
+                                res.AddTransition(curStateCount,curTransStM1,state.first);
+                                f= true;
+                                break;
+                            }
+                        }
+                        if (f){
+                            continue;
                         }
                         stateCount++;
                         Q[stateCount]=std::make_pair(i,j);
@@ -118,27 +143,8 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
         }
     }
     res.SetFinalStates(newFinalStates);
-    // Удаление лишнего
-    std::vector<std::pair<char,char>> used(res.stateCount+1);
-    used[0]=std::make_pair(true, false);
-    for (int i=0;i<res.transitions[0].size();i++){
-        if (res.transitions[0][i]!=' '){
-            dfs(i,used,res);
-        }
-    }
-    for (int i=used.size()-1;i>0;i--){
-        if (used[i].second || !used[i].first){
-            for(auto& row:res.transitions) row.erase(next(row.begin(), i));
-            res.transitions.erase(res.transitions.begin()+i);
-            res.stateCount--;
-            for (auto finalState: res.finalStates){
-                if (finalState>i){
-                    res.finalStates.erase(finalState);
-                    res.finalStates.insert(finalState-1);
-                }
-            }
-        }
-    }
+//    // Удаление лишнего
+    fixStates(res);
     return res;
 }
 
