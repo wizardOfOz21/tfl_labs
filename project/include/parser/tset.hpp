@@ -4,7 +4,7 @@
 
 #include "StateMachine.h"
 
-std::string alf = "ab";
+std::string alf = "abc";
 
 struct cchar {
     char s;

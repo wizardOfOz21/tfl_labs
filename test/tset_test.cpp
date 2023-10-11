@@ -4,7 +4,8 @@
 
 #include "StateMachine.h"
 #include "gtest/gtest.h"
-#include "parser/parser.hpp"
+#include "parser/parser2.hpp"
+// #include "parser/parser.hpp"
 #include "parser/vizualizer.hpp"
 
 // TEST(TSet_Test, Union_Test) {
@@ -56,18 +57,22 @@ TEST(Parser_Test, A_Test) {
     // string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
     // string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
     // string s = "^a*((?=bb$)|(?=a|a$))|a((b|aa)a)((((aa((((b))))))))$";
+    // a*((?=bb$)|(?=a|a$)) | a((b|aa)a)((((aa((((b))))))))
     // string s = "^a|b|(ab)*|ba(ab*(ab))$";
     // string s = "^(a(ab)*)*|(ba)*$";
-    string s = "^b(b(?=ab*a*a|a$)((a)))$";
-    Parser r(s.data(), s.length());
+    // string s = "^ba*(?=((ca*|(ba*|b|((a))|(b)b)))$)$";
+    // string s = "^a|b|((?=a)|(?=b$))|c$";
+    // string s = "^a(b)(c(?=a*c*)(b*))c$";
+    string s = "^(((((?=c)))))b$";
+    Parser r(s.data(), s.length(), {'a','b','c'});
 
-    Node* R = r.Parse();
-    dump4(R, true);
-    StateMachine M = R->to_machine_dfs();
-    std::ofstream f("graph");
-    StateMachine::To_Graph(M, f);
-    f.close();
-    system("dot -Tjpg graph -O");
+    node_ptr R = r.Parse();
+    // dump4(R->syntax_tree, true);
+    // StateMachine M = R->to_machine_dfs();
+    // std::ofstream f("graph");
+    // StateMachine::To_Graph(M, f);
+    // f.close();
+    // system("dot -Tjpg graph -O");
 }
 
 int main(int argc, char** argv) {
