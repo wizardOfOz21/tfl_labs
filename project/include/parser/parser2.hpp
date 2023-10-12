@@ -40,10 +40,10 @@ struct Node {
 
     string value = "";  // внешний вид регулярки, для отладки
 
+    static int graph_vertex_count;
+
     Node(NodeType type_) : type(type_) {}
-
     bool is_regex() { return type == NodeType::REGEX; }
-
     static node_ptr empty_regex() {
         return std::make_unique<Node>(NodeType::REGEX);
     }
@@ -135,9 +135,11 @@ struct Node {
                         } else {
                             argument.AddFinalState(0);
                         }
-                        return StateMachine::ConcatStateMachines(
-                            accum, StateMachine::IntersectStateMachines(
-                                       np->to_machine_dfs(), argument));
+                        StateMachine intersect =
+                            StateMachine::IntersectStateMachines(
+                                np->to_machine_dfs(), argument);
+                        return StateMachine::ConcatStateMachines(accum,
+                                                                 intersect);
                     }
                     accum = StateMachine::ConcatStateMachines(
                         accum, np->to_machine_dfs());
@@ -157,7 +159,55 @@ struct Node {
                 return StateMachine();
         }
     }
+
+    void to_graph(std::ostream& out) {
+        Node::graph_vertex_count = 0;
+        out << "digraph { graph [ dpi = 300 ]; " << std::endl;
+        to_graph_dfs(out, "\"\"");
+        out << "}" << std::endl;
+    }
+
+    void to_graph_dfs(std::ostream& out, const string& parent_name) {
+        switch (type) {
+            case NodeType::ALTER: {
+                string own_name = "\"" + std::to_string(Node::graph_vertex_count++) + ": |\"";
+                out << own_name << "[shape=square]" << std::endl;
+                out << parent_name << "->" << own_name << std::endl;
+                for (node_ptr& np : args) {
+                    np->to_graph_dfs(out, own_name);
+                }
+                break;
+            }
+            case NodeType::CONCAT: {
+                string own_name = "\"" + std::to_string(Node::graph_vertex_count++) + ": .\"";
+                out << own_name << "[shape=square]" << std::endl;
+                out << parent_name << "->" << own_name << std::endl;
+                for (node_ptr& np : args) {
+                    np->to_graph_dfs(out, own_name);
+                }
+                break;
+            }
+            case NodeType::ITER: {
+                assert(false);  // lookahead под итерацией
+            }
+            case NodeType::REGEX: {
+                string own_name =
+                    "\"" + std::to_string(Node::graph_vertex_count++) + ": " + value + "\"";
+                out << parent_name << "->" << own_name << std::endl;
+                break;
+            }
+            case NodeType::LOOKAHEAD: {
+                string own_name =
+                    "\"" + std::to_string(Node::graph_vertex_count++) + ": " + value + "\"";
+                out << parent_name << "->" << own_name << std::endl;
+                out << own_name << "[peripheries=2]" << std::endl;
+                break;
+            }
+        };
+    }
 };
+
+int Node::graph_vertex_count = 0;
 
 class Parser {
    private:
@@ -201,6 +251,7 @@ class Parser {
         node_ptr node_accum = Node::_node(NodeType::ALTER);
         node_ptr regex_accum = nullptr;
 
+        int pos = 0;
         node_ptr T = ParseT();
         while (T) {
             if (T->is_regex()) {
@@ -225,10 +276,12 @@ class Parser {
                 node_accum->add_node(std::move(regex_accum));
                 return node_accum;
             }
+            pos = next_index;
             skip();
             T = ParseT();
         }
 
+        next_index = pos; // возвращаемя к плюсу
         return nullptr;  // был +, а дальше пусто
     }
 
@@ -262,7 +315,8 @@ class Parser {
             F = ParseF();
         }
         if (!regex_accum) {
-            if (node_accum->args.size() == 1) {
+            if (node_accum->args.size() == 1 &&
+                node_accum->args[0]->type != NodeType::LOOKAHEAD) {
                 return std::move(node_accum->args[0]);
             }
             return node_accum;

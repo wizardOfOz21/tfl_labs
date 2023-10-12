@@ -5,8 +5,6 @@
 #include "StateMachine.h"
 #include "gtest/gtest.h"
 #include "parser/parser2.hpp"
-// #include "parser/parser.hpp"
-#include "parser/vizualizer.hpp"
 
 // TEST(TSet_Test, Union_Test) {
 //     cchar A{'a', 1};
@@ -55,9 +53,8 @@
 TEST(Parser_Test, A_Test) {
     // string s = "^ab((?=.*(aa|b)$)(a|ab)*)ab((?=.*(ba|aa)$)(b|ba)*)a$";
     // string s = "^a|(?=.*(aa|b)$)(a|ab)*|(ba)*|(?=.*(ba|aa)$)(b|ba)*|a$";
-    string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
+    // string s = "^ab((?=.*(aa|b)$)(a|ab)*|(?=.*(ba|aa)$)(b|ba)*)$";
     // string s = "^a*((?=bb$)|(?=a|a$))|a((b|aa)a)((((aa((((b))))))))$";
-    // a*((?=bb$)|(?=a|a$)) | a((b|aa)a)((((aa((((b))))))))
     // string s = "^a|b|(ab)*|ba(ab*(ab))$";
     // string s = "^(a(ab)*)*|(ba)*$";
     // string s = "^ba*(?=((ca*|(ba*|b|((a))|(b)b)))$)$";
@@ -65,15 +62,19 @@ TEST(Parser_Test, A_Test) {
     // string s = "^a(b)(c(?=a*c*)(b*))c$";
     // string s = "^(((((?=c)))))b$";
     // string s = "^(a(ab)*)*|(ba)*$";
+    // Parser r(s.data(), s.length());
     Parser r(s.data(), s.length(), {'a','b','c'});
 
+    // Node* R = r.Parse();
     node_ptr R = r.Parse();
     // dump4(R->syntax_tree, true);
-    StateMachine M = R->to_machine_dfs();
+    // StateMachine M = R->to_machine_dfs();
     std::ofstream f("graph");
-    StateMachine::To_Graph(M, f);
+    // StateMachine::To_Graph(M, f);
+    // R->to_graph(f);
+    R->syntax_tree->to_graph(f);
     f.close();
-    system("dot -Tjpg graph -O");
+    system("dot -Tpng graph -O");
 }
 
 int main(int argc, char** argv) {

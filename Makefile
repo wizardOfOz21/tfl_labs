@@ -18,3 +18,6 @@ valgrind-run:
 
 check:
 	cppcheck --language=c++ ./project/src/*.cpp ./main.cpp
+
+console: 
+	./build/console
