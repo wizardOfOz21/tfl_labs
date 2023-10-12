@@ -108,6 +108,55 @@ struct Node {
         }
         return arg;
     }
+
+    StateMachine to_machine_dfs(int start = 0) {
+        switch (type) {
+            case NodeType::ALTER: {
+                StateMachine accum;
+                for (node_ptr& np : args) {
+                    assert(np->type !=
+                           NodeType::ALTER);  // все альтернативы на этапе
+                                              // парсинга сливаются в одну
+                    accum = StateMachine::UnionStateMachines(
+                        accum, np->to_machine_dfs());
+                }
+                return accum;
+            }
+            case NodeType::CONCAT: {
+                StateMachine accum(0);
+                accum.AddFinalState(0);
+                for (int i = start; i < args.size(); ++i) {
+                    node_ptr& np = args[i];
+                    assert(np->type != NodeType::CONCAT);  // - . -
+                    if (np->type == NodeType::LOOKAHEAD) {
+                        StateMachine argument(0);
+                        if (i != args.size() - 1) {
+                            argument = to_machine_dfs(i + 1);
+                        } else {
+                            argument.AddFinalState(0);
+                        }
+                        return StateMachine::ConcatStateMachines(
+                            accum, StateMachine::IntersectStateMachines(
+                                       np->to_machine_dfs(), argument));
+                    }
+                    accum = StateMachine::ConcatStateMachines(
+                        accum, np->to_machine_dfs());
+                }
+                return accum;
+            }
+            case NodeType::ITER: {
+                assert(false);  // lookahead под итерацией
+                return StateMachine();
+            }
+            case NodeType::REGEX:
+            case NodeType::LOOKAHEAD: {
+                assert(syntax_tree);
+                return syntax_tree->to_machine();
+            }
+            default:
+                return StateMachine();
+        }
+    }
 };
 
 class Parser {
