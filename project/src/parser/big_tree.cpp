@@ -19,25 +19,33 @@ void Node::iter_regex() {
 }
 
 void Node::plus_regex(node_ptr arg) {
-    assert(arg->type == NodeType::REGEX);
+    assert(type == NodeType::REGEX);
+    assert(arg->type == NodeType::REGEX); 
     value += "|" + arg->value;
     syntax_tree = s_node::_node(node_type::ALTER, std::move(syntax_tree),
                                 std::move(arg->syntax_tree));
 };
 
 void Node::concat_regex(node_ptr arg) {
+    assert(type == NodeType::REGEX);
     assert(arg->type == NodeType::REGEX);
     value += arg->value;
     syntax_tree = s_node::_node(node_type::CONCAT, std::move(syntax_tree),
                                 std::move(arg->syntax_tree));
 };
 
-void Node::lookahead() {
+void Node::lookahead_regex() {
+    assert(type == NodeType::REGEX);
     value += ".*";
     s_node_ptr dot = s_node::symbol_node('.');
     dot = s_node::_node(node_type::ITER, std::move(dot), nullptr);
     syntax_tree = s_node::_node(node_type::CONCAT, std::move(syntax_tree),
                                 std::move(dot));
+}
+
+void Node::paren_regex() {
+    assert(type == NodeType::REGEX);
+    value = "(" + value + ")";
 }
 
 void Node::add_node(node_ptr arg) {
@@ -48,19 +56,12 @@ void Node::add_node(node_ptr arg) {
 void Node::merge_node(node_ptr arg) {
     assert(type == NodeType::ALTER || type == NodeType::CONCAT);
     assert(arg->type == NodeType::ALTER || arg->type == NodeType::CONCAT);
+    assert(type == arg->type);
     for (node_ptr& p : arg->args) {
         args.push_back(std::move(p));
     }
 }
 
-node_ptr Node::paren(node_ptr arg) {
-    assert(arg);
-    if (arg->is_regex()) {
-        arg->value = "(" + arg->value + ")";
-        return arg;
-    }
-    return arg;
-}
 
 StateMachine Node::to_machine_dfs(int start) {
     switch (type) {

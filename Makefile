@@ -12,6 +12,10 @@ run:
 
 run-tests:
 	./build/test/fuzz_test
+	./build/test/parser_test
+	./build/test/sgen_test
+	./build/test/to_regex_test
+	./build/test/tset_test
 
 valgrind-run-tests:
 	valgrind --tool=memcheck ./build/test/fuzz_test

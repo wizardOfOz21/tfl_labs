@@ -1,7 +1,7 @@
-#include <cassert>
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "parser/parser2.hpp"
 
 node_ptr Parser::Parse() {
@@ -26,7 +26,7 @@ node_ptr Parser::ParseR() {
     int pos = next_index;
     node_ptr T = ParseT();
     while (T) {
-        if (T->is_regex()) {
+        if (T->type == NodeType::REGEX) {
             if (!regex_accum) {
                 regex_accum = std::move(T);
             } else {
@@ -53,8 +53,8 @@ node_ptr Parser::ParseR() {
         T = ParseT();
     }
 
-    next_index = pos;  // возвращаемя к плюсу
-    return nullptr;    // был +, а дальше пусто
+    next_index = pos;  // был +, а дальше пусто
+    return nullptr;    // возвращаемcя к плюсу
 }
 
 node_ptr Parser::ParseT() {
@@ -65,7 +65,7 @@ node_ptr Parser::ParseT() {
     node_ptr regex_accum = nullptr;
 
     while (F) {
-        if (F->is_regex()) {
+        if (F->type == NodeType::REGEX) {
             if (!regex_accum) {
                 regex_accum = std::move(F);
             } else {
@@ -103,10 +103,9 @@ node_ptr Parser::ParseF() {
         skip(3);
         int pos = next_index;
         node_ptr L = ParseR0();
-        // assert(L->is_regex());  // не бывает lookahead внутри lookahead
-        if (!L->is_regex()) {
+        if (L->type != NodeType::REGEX) { // не бывает lookahead внутри lookahead
             next_index = pos;
-            return nullptr;  // незакрытый lookahead
+            return nullptr;
         }
         char c = next();
         if (c != _END && c != _RPAREN) {
@@ -114,7 +113,7 @@ node_ptr Parser::ParseF() {
             return nullptr;  // незакрытый lookahead
         }
         if (c == _RPAREN) {
-            L->lookahead();
+            L->lookahead_regex(); // добавляем точку со звездочкой
             skip();
         } else {
             skip();
@@ -128,17 +127,18 @@ node_ptr Parser::ParseF() {
         return L;
     }
     node_ptr A = ParseA();
-    if (!A) return nullptr;  // если не A, то ничего
+    if (!A) return nullptr;  // если не A, то вариантов больше нет
     if (next() == '*') {
         skip();
-        A->iter_regex();
+        if (A->type != NodeType::REGEX) return nullptr; // нельзя итерировать что-то с lookahead
+        A->iter_regex(); // навешиваем звездочку
     }
     return A;
 }
 
 node_ptr Parser::ParseA() {
     char a = next();
-    if (check(a) || a == '.') {
+    if (check(a) || a == '.') { // с точками разбирается пересекатель автоматов, тут их не трогаем
         skip();
         return Node::symbol_regex(a);
     }
@@ -151,7 +151,8 @@ node_ptr Parser::ParseA() {
             return nullptr;
         }
         skip();
-        return Node::paren(std::move(R0));
-    }
+        if (R0->type == NodeType::REGEX) R0->paren_regex();
+        return R0;
+     }
     return nullptr;
 }

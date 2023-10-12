@@ -19,18 +19,16 @@ const vector<string> tricky_regex{
 };
 
 TEST(Parser_Test, Special_Regex_Parse_Test) {
-    unordered_set<char> alphabet{'a', 'b', 'c'};
     for (string regex : tricky_regex) {
-        Parser parser(regex.data(), regex.length(), alphabet);
+        Parser parser(regex.data(), regex.length());
         node_ptr R = parser.Parse();
         EXPECT_TRUE(R);
     }
 }
 
 TEST(Parser_Test, Empty_Regex_Parse_Test) {
-    unordered_set<char> alphabet{'a', 'b', 'c'};
     string e_regex = "^$";
-    Parser parser(e_regex.data(), e_regex.length(), alphabet);
+    Parser parser(e_regex.data(), e_regex.length());
     node_ptr R = parser.Parse();
     EXPECT_TRUE(R);
     EXPECT_EQ(R->type, NodeType::REGEX);
@@ -41,7 +39,7 @@ TEST(Parser_Test, Random_Regex_Parse_Test) {
     RegexGenerator generator;
     for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
-        Parser r(regex.data(), regex.length(), {'a', 'b', 'c'});
+        Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
         EXPECT_TRUE(R);
     }

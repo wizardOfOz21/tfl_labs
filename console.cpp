@@ -3,9 +3,9 @@
 #include <iostream>
 
 #include "parser/parser2.hpp"
-#include "project/include/RegexGenerator.h"
-#include "project/include/StateMachine.h"
-#include "project/include/StringGenerator.h"
+#include "RegexGenerator.h"
+#include "StateMachine.h"
+#include "StringGenerator.h"
 
 int main() {
     std::cout << "Enter regex, 'stop' or 'save_stop' command" << std::endl;
@@ -16,7 +16,7 @@ int main() {
         if (cmd == "stop") break;
         if (cmd == "save_stop") return 0;
         cmd = "^" + cmd + "$";
-        Parser r(cmd.data(), cmd.length(), {'a', 'b', 'c'});
+        Parser r(cmd.data(), cmd.length());
         node_ptr R = r.Parse();
         if (!R) {
             std::cout << "parse error" << std::endl;
