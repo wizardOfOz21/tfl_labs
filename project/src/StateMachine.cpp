@@ -31,6 +31,15 @@ void StateMachine::SetFinalStates(std::unordered_set<int> final) {
 }
 
 StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
+    if ((stM1.stateCount==0 && stM1.finalStates.empty()) || (stM2.stateCount==0 && stM2.finalStates.empty())) {
+        return {};
+    }
+    if (stM1.stateCount==0 && !stM1.finalStates.empty()) {
+        return stM2;
+    }
+    if (stM2.stateCount==0 && !stM2.finalStates.empty()) {
+        return stM1;
+    }
     StateMachine res(stM1.GetStateNum()+stM2.GetStateNum());
     for (int i=0;i<stM1.transitions.size();i++){
         for (int j=0;j<stM1.transitions[i].size();j++){
@@ -54,7 +63,13 @@ StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const S
         }
     }
     std::unordered_set<int> newFinalStates;
+    auto it = stM1.finalStates.find(0);
     for (auto finalState:stM2.finalStates){
+        if (finalState==0 ) {
+            for (auto finalState1:stM1.finalStates) {
+                newFinalStates.insert(finalState1);
+            }
+        }
         newFinalStates.insert(finalState+stM1.GetStateNum());
     }
     res.SetFinalStates(newFinalStates);
@@ -99,6 +114,9 @@ void fixStates(StateMachine& res){
 }
 
 StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
+    if ((stM1.stateCount==0 && stM1.finalStates.empty()) || (stM2.stateCount==0 && stM2.finalStates.empty())) {
+        return {};
+    }
     std::unordered_map<int,std::pair<int,int>> Q;
     std::queue<int> que;
     StateMachine res(stM1.GetStateNum()*stM2.GetStateNum());
@@ -106,6 +124,11 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
     Q[0]=std::make_pair(0,0);
     que.push(0);
     int stateCount=0;
+    auto it1 = stM1.finalStates.find(0);
+    auto it2 = stM2.finalStates.find(0);
+    if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()) {
+        newFinalStates.insert(stateCount);
+    }
     while (!que.empty()){
         auto curStateCount=que.front();
         auto curState=Q[que.front()];
@@ -133,9 +156,8 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
                         auto it2 = stM2.finalStates.find(j);
                         if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()){
                             newFinalStates.insert(stateCount);
-                        }else {
-                            que.push(stateCount);
                         }
+                        que.push(stateCount);
                         res.AddTransition(curStateCount,curTransStM1,stateCount);
                     }
                 }
@@ -173,6 +195,7 @@ StateMachine StateMachine::UnionStateMachines(const StateMachine& stM1, const St
         newFinalStates.insert(finalState);
     }
     for (auto finalState:stM2.finalStates){
+        if (finalState==0) newFinalStates.insert(finalState);
         newFinalStates.insert(finalState+stM1.GetStateNum());
     }
     res.SetFinalStates(newFinalStates);
@@ -180,8 +203,11 @@ StateMachine StateMachine::UnionStateMachines(const StateMachine& stM1, const St
 }
 
 std::string StateMachine::ConvertToRegularExpr() {
-    if (stateCount==0){
+    if (stateCount==0 && !finalStates.empty()){
         return "^$";
+    }
+    if (stateCount==0){
+        return "^_$"; // условимся, что это означает, что регулярное выражение матчит ничего
     }
     int curStatesCount=stateCount+2;
     std::vector<std::vector<std::string>> trans(stateCount+1,
@@ -255,9 +281,9 @@ std::string StateMachine::ConvertToRegularExpr() {
         curStatesCount--;
     }
     if (zeroIsFinal){
-        return "("+trans[0][stateCount+1]+")?";
+        return "^("+trans[0][stateCount+1]+")?$";
     }
-    return "("+trans[0][stateCount+1]+")";
+    return "^("+trans[0][stateCount+1]+")$";
 }
 
 void StateMachine::To_Graph(const StateMachine& M, std::ostream& out) {
@@ -266,12 +292,14 @@ void StateMachine::To_Graph(const StateMachine& M, std::ostream& out) {
     for (int state : M.finalStates) {
         out << state << " [peripheries = 2]" << std::endl;
     }
-    for (int from = 0; from < M.stateCount+1; ++from) {
-        const std::vector<char>& from_trans = M.transitions[from];
-        for (int to = 0; to < M.stateCount+1; ++to) {
-            if (from_trans[to] != ' ')
-                out << from << " -> " << to << " [label=\"" << from_trans[to]
-                    << "\"]" << std::endl;
+    if (M.stateCount!=0){
+        for (int from = 0; from < M.stateCount+1; ++from) {
+            const std::vector<char>& from_trans = M.transitions[from];
+            for (int to = 0; to < M.stateCount+1; ++to) {
+                if (from_trans[to] != ' ')
+                    out << from << " -> " << to << " [label=\"" << from_trans[to]
+                        << "\"]" << std::endl;
+            }
         }
     }
     out << "}" << std::endl;

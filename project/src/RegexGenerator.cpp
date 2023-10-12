@@ -30,8 +30,14 @@ std::string RegexGenerator::GenerateRegex() {
     curLettersNum=0;
     curNesting=0;
     curLookaheadNum=0;
+    fromLookahead= false;
+    wasLookaheadInBrackets= false;
+    needToReturn = false;
+    curOpenBracketsNum=0;
+    needToClose=0;
+
     res="^";
-    while(curLettersNum!=lettersNum) generateRegex();
+    while(curLettersNum!=lettersNum && !needToReturn) generateRegex();
     res+="$";
     return res;
 }
@@ -43,11 +49,12 @@ void RegexGenerator::generateRegex(){
     if (lettersNum==curLettersNum) return;
     if (lettersNum-curLettersNum<2) state=0;
     else state=rand()%2;
-
     switch (state) {
         case 0:
             generateConcRegex();
-            if (lettersNum==curLettersNum) return;
+            if (lettersNum==curLettersNum || needToReturn) {
+                return;
+            }
             res+="|";
             generateRegex();
             break;
@@ -66,7 +73,7 @@ void RegexGenerator::generateConcRegex() {
             break;
         case 1:
             generateSimpleRegex();
-            if (lettersNum==curLettersNum) return;
+            if (lettersNum==curLettersNum || needToReturn) return;
             generateConcRegex();
             break;
     }
@@ -87,51 +94,59 @@ void RegexGenerator::generateSimpleRegex() {
             state=rand()%2;
         }
     }
+    int v;
     bool needStar= false;
     switch (state) {
         case 0:
             curOpenBracketsNum++;
             res+="(";
             if (curNesting!=starNesting){
-                int v=rand()%2;
-                switch (v) {
-                    case 0:
-                        needStar=true;
-                        curNesting++;
-                        break;
-                    case 1:
-                        if (curNesting!=0) curNesting--;
+                v=rand()%2;
+                if (!v) {
+                    needStar=true;
+                    curNesting++;
                 }
             }
             generateRegex();
             res+=")";
-            if (!wasLookaheadInBrackets && needStar) res+="*";
+            if (!wasLookaheadInBrackets && needStar){
+                res+="*";
+                curNesting--;
+            }
             curOpenBracketsNum--;
-            if (curOpenBracketsNum==0) wasLookaheadInBrackets= false;
+            if (wasLookaheadInBrackets){
+                needToReturn = true;
+                return ;
+            }
+            if (curOpenBracketsNum==0){
+                wasLookaheadInBrackets= false;
+                curNesting=0;
+            }
             break;
         case 1:
-            res+=randSymb();
+            v=rand()%10;
+            if (v==0) {
+                res+=".";
+            }else {
+                res+=randSymb();
+            }
             curLettersNum++;
             if (curNesting!=starNesting){
-                int v=rand()%2;
-                switch (v) {
-                    case 0:
-                        res+="*";
-                        curNesting++;
-                        break;
-                    case 1:
-                        if (curNesting!=0) curNesting--;
+                v=rand()%2;
+                if (!v) {
+                    res+="*";
+                    curNesting++;
                 }
             }
             break;
         case 2:
             curLookaheadNum++;
-            res+="(?=";
+            res+="(?=(";
             fromLookahead= true;
             generateRegex();
             fromLookahead= false;
-            wasLookaheadInBrackets= true;
-            res+="$)";
+            if (curOpenBracketsNum!=0) wasLookaheadInBrackets= true;
+            res+=")$)";
     }
 }
 
@@ -145,3 +160,4 @@ GRAMMAR:
 <rbr> ::= ')'
 <unary> ::= '*'
 */
+// при этом дополнительно не допускаются lookahead вложенные и под звездой
