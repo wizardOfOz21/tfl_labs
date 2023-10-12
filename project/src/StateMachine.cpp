@@ -207,7 +207,7 @@ std::string StateMachine::ConvertToRegularExpr() {
         return "^$";
     }
     if (stateCount==0){
-        return "^_$"; // условимся, что это означает, что регулярное выражение матчит ничего
+        return "^Ø$"; // регулярное выражение матчит ничего
     }
     int curStatesCount=stateCount+2;
     std::vector<std::vector<std::string>> trans(stateCount+1,

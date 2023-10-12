@@ -48,4 +48,5 @@ int main(int argc, char *argv[]){
         showUsage(argv[0]);
         return 1;
     }
+    std::cout<<"Parse ok"<<std::endl;
 }
