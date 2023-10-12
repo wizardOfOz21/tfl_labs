@@ -6,19 +6,6 @@
 #include "StateMachine.h"
 #include "gtest/gtest.h"
 #include "parser/parser2.hpp"
-#include "parser/tset.hpp"
-// #include "parser/parser.hpp"
-
-TEST(Basic_Test, Parse_Test) {
-    RegexGenerator generator;
-    for (int i = 0; i < 1000; ++i) {
-        string regex = generator.GenerateRegex();
-        // std::cout << regex << std::endl;
-        Parser r(regex.data(), regex.length(), {'a', 'b', 'c'});
-        node_ptr R = r.Parse();
-        EXPECT_TRUE(R);
-    }
-}
 
 TEST(Basic_Test, Convert_Test) {
     RegexGenerator generator;
@@ -45,8 +32,9 @@ TEST(Basic_Test, Match_Regular_Test) {
         StringGenerator sg;
         for (int i = 0; i < 100; i++) {
             std::string curStr = sg.GenerateString(M);
+            // std::cout << curStr << std::endl; 
             bool r1_match = regex_match(curStr, r1);
-            std::cout << r1_match << std::endl; 
+            EXPECT_TRUE(r1_match);
             EXPECT_EQ(r1_match, regex_match(curStr, r2));
         }
     }

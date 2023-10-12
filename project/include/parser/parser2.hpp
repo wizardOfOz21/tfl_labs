@@ -36,7 +36,7 @@ struct Node {
     NodeType type;
     vector<node_ptr> args;
     m_node* syntax_tree =
-        nullptr;  // дерево разбора регулярки, если это регулярка
+        nullptr;  // дерево разбора регулярки, если это регулярка, nullptr, если не ругулярка или пустое слово
 
     string value = "";  // внешний вид регулярки, для отладки
 
@@ -251,7 +251,7 @@ class Parser {
         node_ptr node_accum = Node::_node(NodeType::ALTER);
         node_ptr regex_accum = nullptr;
 
-        int pos = 0;
+        int pos = next_index;
         node_ptr T = ParseT();
         while (T) {
             if (T->is_regex()) {
