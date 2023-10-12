@@ -3,6 +3,7 @@
 
 #include <string>
 #include "StateMachine.h"
+#include "RegexGenerator.h"
 
 class StringGenerator{
 private:
@@ -10,7 +11,7 @@ private:
     void changeSeed();
 public:
     StringGenerator()=default;
-    std::string GenerateString(const StateMachine& stM);
+    std::string GenerateString(const StateMachine& stM, RegexGenerator* rg= nullptr);
 };
 
 #endif //TFL_LABS_STRINGGENERATOR_H

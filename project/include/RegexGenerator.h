@@ -4,6 +4,7 @@
 #include <vector>
 
 class RegexGenerator {
+    friend class StringGenerator;
 private:
     std::vector<char> alphabet;
     size_t seed = 0;
@@ -17,7 +18,9 @@ private:
     int curLookaheadNum=0;
     bool fromLookahead= false;
     bool wasLookaheadInBrackets= false;
+    bool needToReturn = false;
     int curOpenBracketsNum=0;
+    int needToClose=0;
     std::string res;
 
     void generateRegex();
