@@ -11,10 +11,20 @@ run:
 	./build/simplifier -r ab -f test.txt
 
 run-tests:
-	./build/test/to_regex_test && ./build/test/tset_test && ./build/test/graph_test
+	./build/test/fuzz_test
+	./build/test/parser_test
+	./build/test/sgen_test
+	./build/test/to_regex_test
+	./build/test/tset_test
+
+valgrind-run-tests:
+	valgrind --tool=memcheck ./build/test/fuzz_test
 
 valgrind-run:
 	valgrind --tool=memcheck ./build/simplifier
 
 check:
 	cppcheck --language=c++ ./project/src/*.cpp ./main.cpp
+
+console: 
+	./build/console

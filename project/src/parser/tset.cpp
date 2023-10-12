@@ -10,57 +10,64 @@ bool operator==(const cchar& a, const cchar& b) {
     return a.s == b.s && a.num == b.num;
 }
 
-template <class T>
-std::set<T>& set_union(std::set<T>& A, const std::set<T>& B) {
-    for (T b : B) {
-        A.insert(b);
-    }
-    return A;
+TSet::TSet() {
+    first = last = {};
+    follow = {};
+    e_flag = false;
+    num = 0;
 }
 
-void TSet::plus(const TSet& add) {
-    set_union(first, add.first);
-    set_union(follow, add.follow);
-    set_union(last, add.last);
-    e_flag = e_flag || add.e_flag;
+TSet::TSet(cchar a) {
+    first = last = {a};
+    e_flag = false;
+    num = 1;
 }
 
-void TSet::concat(const TSet& add) {
+void TSet::plus(const TSet& arg) {
+    set_union(first, arg.first);
+    set_union(follow, arg.follow);
+    set_union(last, arg.last);
+    e_flag = e_flag || arg.e_flag;
+    num += arg.num;
+};
+
+void TSet::concat(const TSet& arg) {
     if (e_flag) {
-        for (cchar b : add.first) {
+        for (cchar b : arg.first) {
             first.insert(b);
         }
     }
 
-    for (auto ab : add.follow) {
+    for (auto ab : arg.follow) {
         follow.insert(ab);
     }
 
     for (cchar a : last) {
-        for (cchar b : add.first) {
-            follow.insert(pair(a, b));
+        for (cchar b : arg.first) {
+            follow.insert(cpair(a, b));
         }
     }
 
-    if (add.e_flag) {
-        for (cchar b : add.last) {
+    if (arg.e_flag) {
+        for (cchar b : arg.last) {
             last.insert(b);
         }
     } else {
-        last = add.last;
+        last = arg.last;
     }
 
-    e_flag = e_flag && add.e_flag;
-}
+    e_flag = e_flag && arg.e_flag;
+    num += arg.num;
+};
 
 void TSet::iter() {
-    for (cchar a : last) {
-        for (cchar b : first) {
-            bool c = follow.insert(pair(a, b)).second;
+    for (const cchar& a : last) {
+        for (const cchar& b : first) {
+            follow.insert(cpair(a, b));
         }
     }
     e_flag = true;
-}
+};
 
 StateMachine TSet::to_machine() {
     StateMachine machine(num);
@@ -76,5 +83,5 @@ StateMachine TSet::to_machine() {
     if (e_flag) {
         machine.AddFinalState(0);
     }
-    return std::move(machine);
+    return machine;
 };
