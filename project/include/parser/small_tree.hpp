@@ -52,11 +52,6 @@ struct m_node {
             }
             case node_type::SYMBOL: {
                 if (s == 0) return TSet();
-                if (s == '.') {
-                    int c = m_node::linear_count;
-                    m_node::linear_count += alf.length();
-                    return TSet(cchar{s, c});
-                }
                 return TSet(cchar{s, m_node::linear_count++});
             }
             default:

@@ -48,18 +48,9 @@ struct TSet {
     }
 
     TSet(cchar a) {
-        if (a.s == '.') {
-            int count = a.num;
-            for (char s : alf) {
-                first.insert(cchar{s, count});
-                last.insert(cchar{s, count++});
-            }
-            num = alf.length();
-        } else {
-            first = last = {a};
-            e_flag = false;
-            num = 1;
-        }
+        first = last = {a};
+        e_flag = false;
+        num = 1;
     }
 
     void plus(const TSet& arg) {
