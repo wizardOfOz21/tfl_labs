@@ -76,8 +76,8 @@ void RegexGenerator::generateConcRegex() {
 void RegexGenerator::generateSimpleRegex() {
     int state = rand()%3;
     if (curLettersNum==0){
-        state = rand() % 4;
-        if (state != 0) state = 1;
+        state = rand() % 7;
+        if (state != 0 && state!=2) state = 1;
     }
     if (lookaheadNum==curLookaheadNum || fromLookahead) {
         if (fromLookahead) {
@@ -139,7 +139,7 @@ void RegexGenerator::generateSimpleRegex() {
 GRAMMAR:
 <regex> ::= <conc-regex> <alt> <regex> | <conc-regex>
 <conc-regex> ::= <simple-regex> | <simple-regex><conc-regex>
-<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=regex$)
+<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=<regex>$)
 <alt> ::= '|'
 <lbr> ::= '('
 <rbr> ::= ')'

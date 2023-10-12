@@ -9,9 +9,16 @@ find_package(GTest REQUIRED)
 
 add_executable(tset_test tset_test.cpp)
 add_executable(graph_test graph_test.cpp)
+add_executable(to_regex_test AutomataToRegex_test.cpp)
+
 target_include_directories(tset_test PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
 target_link_libraries(tset_test PRIVATE ${SIMPLIFIER_LIBRARIES})
 target_link_libraries(tset_test PRIVATE GTest::GTest)
+
 target_include_directories(graph_test PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
 target_link_libraries(graph_test PRIVATE ${SIMPLIFIER_LIBRARIES})
 target_link_libraries(graph_test PRIVATE GTest::GTest)
+
+target_include_directories(to_regex_test PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
+target_link_libraries(to_regex_test PRIVATE ${SIMPLIFIER_LIBRARIES})
+target_link_libraries(to_regex_test PRIVATE GTest::GTest)
