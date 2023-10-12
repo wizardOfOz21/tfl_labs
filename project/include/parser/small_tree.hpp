@@ -1,109 +1,50 @@
+#pragma once
 #include <cassert>
+#include <memory>
 
 #include "parser/tset.hpp"
 
 using std::string;
 
+struct s_node;
+using s_node_ptr = std::unique_ptr<s_node>;
+
 enum class node_type {
-    ALTER,
-    CONCAT,
-    ITER,
+    ALTER = '|',
+    CONCAT = '.',
+    ITER = '*',
     SYMBOL,
 };
 
-struct m_node {
+struct s_node {
     node_type type;
     char s;
-    m_node* left = nullptr;
-    m_node* right = nullptr;
+    s_node_ptr left = nullptr;
+    s_node_ptr right = nullptr;
 
     static int graph_vertex_count;
     static int linear_count;
 
-    StateMachine to_machine() {
-        m_node::linear_count = 1;
-        return dfs().to_machine();
+    static s_node_ptr symbol_node(char s_) {
+        s_node_ptr res = std::make_unique<s_node>();
+        res->type = node_type::SYMBOL;
+        res->s = s_;
+        return res;
     }
 
-    TSet dfs() {
-        switch (type) {
-            case node_type::ALTER: {
-                assert(left);
-                assert(right);
-                TSet A = left->dfs();
-                TSet B = right->dfs();
-                A.plus(B);
-                return A;
-            }
-            case node_type::CONCAT: {
-                assert(left);
-                assert(right);
-                TSet A = left->dfs();
-                TSet B = right->dfs();
-                A.concat(B);
-                return A;
-            }
-            case node_type::ITER: {
-                assert(left);
-                assert(!right);
-                TSet A = left->dfs();
-                A.iter();
-                return A;
-            }
-            case node_type::SYMBOL: {
-                if (s == 0) return TSet();
-                return TSet(cchar{s, m_node::linear_count++});
-            }
-            default:
-                return TSet();
-        }
+    static s_node_ptr _node(node_type type_, s_node_ptr left_,
+                            s_node_ptr right_) {
+        s_node_ptr res = std::make_unique<s_node>();
+        res->type = type_;
+        res->s = (char)type_;
+        res->left = std::move(left_);
+        res->right = std::move(right_);
+        return res;
     }
 
-    void to_graph(std::ostream& out) {
-        m_node::graph_vertex_count = 0;
-        out << "digraph { graph [ dpi = 300 ]; " << std::endl;
-        to_graph_dfs(out, "\"\"");
-        out << "}" << std::endl;
-    }
+    StateMachine to_machine();
+    TSet dfs();
 
-    void to_graph_dfs(std::ostream& out, const string& parent_name) {
-        switch (type) {
-            case node_type::ALTER: {
-                string own_name =
-                    "\"" + std::to_string(m_node::graph_vertex_count++) + ": |\"";
-                out << own_name << "[shape=square]" << std::endl;
-                out << parent_name << "->" << own_name << std::endl;
-                left->to_graph_dfs(out, own_name);
-                right->to_graph_dfs(out, own_name);
-                break;
-            }
-            case node_type::CONCAT: {
-                string own_name =
-                    "\"" + std::to_string(m_node::graph_vertex_count++) + ": .\"";
-                out << own_name << "[shape=square]" << std::endl;
-                out << parent_name << "->" << own_name << std::endl;
-                left->to_graph_dfs(out, own_name);
-                right->to_graph_dfs(out, own_name);
-                break;
-            }
-            case node_type::ITER: {
-                string own_name =
-                    "\"" + std::to_string(m_node::graph_vertex_count++) + ": *\"";
-                out << own_name << "[shape=square]" << std::endl;
-                out << parent_name << "->" << own_name << std::endl;
-                left->to_graph_dfs(out, own_name);
-                break;
-            }
-            case node_type::SYMBOL: {
-                string own_name = "\"" +
-                                  std::to_string(m_node::graph_vertex_count++) +
-                                  ": " + string(1, s) + "\"";
-                out << parent_name << "->" << own_name << std::endl;
-                break;
-            }
-        };
-    }
+    void to_graph(std::ostream& out);
+    void to_graph_dfs(std::ostream& out, const string& parent_name);
 };
-
-int m_node::graph_vertex_count = 0;
-int m_node::linear_count = 0;

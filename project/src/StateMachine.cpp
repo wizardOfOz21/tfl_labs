@@ -135,10 +135,36 @@ StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, cons
         que.pop();
         for (int i=0;i<stM1.transitions[curState.first].size();i++){
             char curTransStM1=stM1.transitions[curState.first][i];
-            if (curTransStM1!=' '){
+            if (curTransStM1=='.'){
                 for (int j=0;j<stM2.transitions[curState.second].size();j++){
                     char curTransStM2=stM2.transitions[curState.second][j];
-                    if (curTransStM2==curTransStM1){
+                    if (curTransStM2!=' '){
+                        bool f= false;
+                        for (auto state : Q) {
+                            if (state.second.first==i && state.second.second==j){
+                                res.AddTransition(curStateCount,curTransStM2,state.first);
+                                f= true;
+                                break;
+                            }
+                        }
+                        if (f){
+                            continue;
+                        }
+                        stateCount++;
+                        Q[stateCount]=std::make_pair(i,j);
+                        auto it1 = stM1.finalStates.find(i);
+                        auto it2 = stM2.finalStates.find(j);
+                        if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()){
+                            newFinalStates.insert(stateCount);
+                        }
+                        que.push(stateCount);
+                        res.AddTransition(curStateCount,curTransStM2,stateCount);
+                    }
+                }
+            } else if (curTransStM1!=' '){
+                for (int j=0;j<stM2.transitions[curState.second].size();j++){
+                    char curTransStM2=stM2.transitions[curState.second][j];
+                    if (curTransStM2==curTransStM1 || curTransStM2 == '.'){
                         bool f= false;
                         for (auto state : Q) {
                             if (state.second.first==i && state.second.second==j){
