@@ -1,5 +1,8 @@
-#include <getopt.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include "project/include/parser/parser2.hpp"
 #include "project/include/StateMachine.h"
 #include "project/include/RegexGenerator.h"
 #include "project/include/StringGenerator.h"
@@ -9,11 +12,11 @@ struct InputData{
     std::string regex;
 };
 
-static void showUsage(std::string name) {
+static void showUsage(const std::string& name) {
     std::cout << "\nUsage: " << name << " <option(s)>\n"
               << "Options:\n"
               << "\t-h, --help\t\tShow this help message\n"
-              << "\t-f, --file\t\tSpecify the test file path with regex string\n"
+              << "\t-f, --file\t\tSpecify the input test file path with regex string\n"
               << "\t-r, --regex\t\tSpecify the test regex string\n"
               << std::endl;
 }
@@ -38,6 +41,17 @@ int parseFlags(int argc, char *argv[], InputData& data) {
   return 0;
 }
 
+std::string convertToAcademicRE(const std::string& inputRegex) {
+    Parser r(inputRegex.data(), inputRegex.length());
+    node_ptr R = r.Parse();
+    if (!R) {
+        throw std::string{"Parse error"};
+    }
+    StateMachine M = R->to_machine_dfs();
+    fixStates(M);
+    return M.ConvertToRegularExpr();
+}
+
 int main(int argc, char *argv[]){
     if (argc < 3) {
         showUsage(argv[0]);
@@ -48,5 +62,38 @@ int main(int argc, char *argv[]){
         showUsage(argv[0]);
         return 1;
     }
-    std::cout<<"Parse ok"<<std::endl;
+    if (!data.filePath.empty()){
+        std::ifstream testFile(data.filePath);
+        if (testFile.is_open()){
+            std::string line;
+            while (std::getline(testFile, line)){
+                std::istringstream iss(line);
+                std::string regex;
+                while (iss >> regex) {
+                    std::string convertedRegex;
+                    try {
+                        convertedRegex = convertToAcademicRE(regex);
+                    } catch (std::string error_message){
+                        std::cerr << error_message << std::endl;
+                        continue;
+                    }
+                    std::cout<<"Original regex: "<<regex<<std::endl;
+                    std::cout<<"Converted regex: "<<convertedRegex<<std::endl<<std::endl;
+                }
+            }
+        }else {
+            std::cerr<<"Cant open input file\n";
+            return 1;
+        }
+    }
+    if (!data.regex.empty()){
+        std::string convertedRegex;
+        try {
+            convertedRegex = convertToAcademicRE(data.regex);
+        } catch (std::string error_message){
+            std::cerr << error_message << std::endl;
+        }
+        std::cout<<"Original regex: "<<data.regex<<std::endl;
+        std::cout<<"Converted regex: "<<convertedRegex<<std::endl<<std::endl;
+    }
 }

@@ -18,6 +18,7 @@ private:
     int curLookaheadNum=0;
     bool fromLookahead= false;
     bool wasLookaheadInBrackets= false;
+    bool wasUnionInBrackets = false;
     bool needToReturn = false;
     int curOpenBracketsNum=0;
     int needToClose=0;

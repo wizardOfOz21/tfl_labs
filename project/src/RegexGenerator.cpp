@@ -1,5 +1,6 @@
 #include "../include/RegexGenerator.h"
 #include <ctime>
+#include <iostream>
 
 RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(13, 2, 2, 2) {}
 
@@ -32,6 +33,7 @@ std::string RegexGenerator::GenerateRegex() {
     curLookaheadNum=0;
     fromLookahead= false;
     wasLookaheadInBrackets= false;
+    wasUnionInBrackets = false;
     needToReturn = false;
     curOpenBracketsNum=0;
     needToClose=0;
@@ -54,6 +56,9 @@ void RegexGenerator::generateRegex(){
             generateConcRegex();
             if (lettersNum==curLettersNum || needToReturn) {
                 return;
+            }
+            if (curOpenBracketsNum!=0){
+                wasUnionInBrackets=true;
             }
             res+="|";
             generateRegex();
@@ -114,12 +119,13 @@ void RegexGenerator::generateSimpleRegex() {
                 curNesting--;
             }
             curOpenBracketsNum--;
-            if (wasLookaheadInBrackets){
+            if (wasLookaheadInBrackets && wasUnionInBrackets){
                 needToReturn = true;
                 return ;
             }
             if (curOpenBracketsNum==0){
                 wasLookaheadInBrackets= false;
+                wasUnionInBrackets=false;
                 curNesting=0;
             }
             break;
@@ -146,7 +152,12 @@ void RegexGenerator::generateSimpleRegex() {
             generateRegex();
             fromLookahead= false;
             if (curOpenBracketsNum!=0) wasLookaheadInBrackets= true;
-            res+=")$)";
+            v=rand()%7;
+            if (!v){
+                res+="))";
+            } else {
+                res+=")$)";
+            }
     }
 }
 
@@ -154,7 +165,7 @@ void RegexGenerator::generateSimpleRegex() {
 GRAMMAR:
 <regex> ::= <conc-regex> <alt> <regex> | <conc-regex>
 <conc-regex> ::= <simple-regex> | <simple-regex><conc-regex>
-<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=<regex>$)
+<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?)
 <alt> ::= '|'
 <lbr> ::= '('
 <rbr> ::= ')'
