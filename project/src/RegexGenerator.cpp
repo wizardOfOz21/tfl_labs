@@ -94,7 +94,7 @@ void RegexGenerator::generateSimpleRegex() {
         if (state != 0 && state!=2) state = 1;
     }
     if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || fromLookahead || fromLookbehind) {
-        if (fromLookahead) {
+        if (fromLookahead || fromLookbehind) {
             state = rand() % 4;
             if (state != 0) state = 1;
         } else {
@@ -175,13 +175,15 @@ void RegexGenerator::generateSimpleRegex() {
                 if (!v){
                     res+="^";
                 }
+                fromLookbehind=true;
+            } else {
+                fromLookahead= true;
             }
-            fromLookahead= true;
             generateRegex();
-            fromLookahead= false;
             if (curOpenBracketsNum!=0) wasLookInBrackets= true;
             if (isLookbehind){
                 res+="))";
+                fromLookbehind=false;
             } else {
                 v=rand()%7;
                 if (!v){
@@ -189,6 +191,7 @@ void RegexGenerator::generateSimpleRegex() {
                 } else {
                     res+=")$)";
                 }
+                fromLookahead= false;
             }
     }
 }
