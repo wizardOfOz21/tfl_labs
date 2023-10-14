@@ -33,7 +33,8 @@ std::string RegexGenerator::GenerateRegex() {
     curNesting=0;
     curLookaheadNum=0;
     curLookbehindNum=0;
-    fromLook= false;
+    fromLookahead= false;
+    fromLookbehind = false;
     wasLookInBrackets= false;
     wasUnionInBrackets = false;
     needToReturn = false;
@@ -92,8 +93,8 @@ void RegexGenerator::generateSimpleRegex() {
         state = rand() % 7;
         if (state != 0 && state!=2) state = 1;
     }
-    if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || fromLook) {
-        if (fromLook) {
+    if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || fromLookahead || fromLookbehind) {
+        if (fromLookahead) {
             state = rand() % 4;
             if (state != 0) state = 1;
         } else {
@@ -115,7 +116,7 @@ void RegexGenerator::generateSimpleRegex() {
             }
             generateRegex();
             res+=")";
-            if (!wasLookInBrackets && needStar){
+            if (!wasLookInBrackets && needStar && !fromLookbehind){
                 res+="*";
             }
             curOpenBracketsNum--;
@@ -139,7 +140,7 @@ void RegexGenerator::generateSimpleRegex() {
             curLettersNum++;
             if (curNesting!=starNesting){
                 v=rand()%2;
-                if (!v) {
+                if (!v && !fromLookbehind) {
                     res+="*";
                     if (curNesting==0){
                         curNesting++;
@@ -175,9 +176,9 @@ void RegexGenerator::generateSimpleRegex() {
                     res+="^";
                 }
             }
-            fromLook= true;
+            fromLookahead= true;
             generateRegex();
-            fromLook= false;
+            fromLookahead= false;
             if (curOpenBracketsNum!=0) wasLookInBrackets= true;
             if (isLookbehind){
                 res+="))";

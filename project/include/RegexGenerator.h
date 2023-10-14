@@ -18,7 +18,8 @@ private:
     int curNesting=0;
     int curLookaheadNum=0;
     int curLookbehindNum=0;
-    bool fromLook= false;
+    bool fromLookahead= false;
+    bool fromLookbehind= false;
     bool wasLookInBrackets= false;
     bool wasUnionInBrackets = false;
     bool needToReturn = false;
