@@ -154,7 +154,7 @@ void RegexGenerator::generateSimpleRegex() {
                 if (lookaheadNum==curLookaheadNum){
                     curLookbehindNum++;
                     isLookbehind=true;
-                    res+="(?<=(";
+                    res+="(?<=";
                 } else {
                     curLookaheadNum++;
                     res+="(?=(";
@@ -163,7 +163,7 @@ void RegexGenerator::generateSimpleRegex() {
                 v=rand()%2;
                 if (!v){
                     curLookbehindNum++;
-                    res+="(?<=(";
+                    res+="(?<=";
                     isLookbehind=true;
                 } else {
                     curLookaheadNum++;
@@ -173,7 +173,9 @@ void RegexGenerator::generateSimpleRegex() {
             if (isLookbehind){
                 v=rand()%7;
                 if (!v){
-                    res+="^";
+                    res+="(";
+                } else {
+                    res+="^(";
                 }
                 fromLookbehind=true;
             } else {
