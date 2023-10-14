@@ -11,7 +11,7 @@ TEST(Convert_Test, Convert_Test) {
     RegexGenerator generator;
     for (int i = 0; i < 100; ++i) {
         string regex = generator.GenerateRegex();
-//        std::cout << regex << std::endl;
+        std::cout << regex << std::endl;
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
         StateMachine M = R->to_machine_dfs();
@@ -19,7 +19,7 @@ TEST(Convert_Test, Convert_Test) {
 }
 
 TEST(Fuzz_Test, Match_Regular_Test) {
-    RegexGenerator generator(3, 2, 0, 2);
+    RegexGenerator generator(3, 2, 0,0, 2);
     for (int i = 0; i < 10; ++i) {
         string regex = generator.GenerateRegex();
 //        std::cout << regex << std::endl;
@@ -41,10 +41,10 @@ TEST(Fuzz_Test, Match_Regular_Test) {
 }
 
 TEST(Fuzz_Test, Match_Lookahead_Test) {
-    RegexGenerator generator(6, 2, 3, 2);
+    RegexGenerator generator(6, 2, 3,0, 2);
     for (int i = 0; i < 100; ++i) {
         string regex = generator.GenerateRegex();
-//        std::cout << regex << std::endl;
+        std::cout << regex << std::endl;
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
         StateMachine M = R->to_machine_dfs();
@@ -60,6 +60,50 @@ TEST(Fuzz_Test, Match_Lookahead_Test) {
         std::cout<<"test "<<i<<" done\n";
     }
 }
+
+TEST(Fuzz_Test, Match_Lookbehind_Test) {
+    RegexGenerator generator(6, 2, 0,3, 2);
+    for (int i = 0; i < 100; ++i) {
+        string regex = generator.GenerateRegex();
+        std::cout << regex << std::endl;
+        Parser r(regex.data(), regex.length());
+        node_ptr R = r.Parse();
+        StateMachine M = R->to_machine_dfs();
+        std::regex r1(regex);
+        std::regex r2(M.ConvertToRegularExpr());
+        StringGenerator sg;
+        for (int i = 0; i < 1000; i++) {
+            std::string curStr = sg.GenerateString(M,&generator);
+            // std::cout << curStr << std::endl; 
+            bool r1_match = regex_match(curStr, r1);
+            EXPECT_EQ(r1_match, regex_match(curStr, r2));
+        }
+        std::cout<<"test "<<i<<" done\n";
+    }
+}
+
+TEST(Fuzz_Test, Match_Lookbehind_and_Lookahead_Test) {
+    RegexGenerator generator(8, 2, 2,2, 2);
+    for (int i = 0; i < 100; ++i) {
+        string regex = generator.GenerateRegex();
+        std::cout << regex << std::endl;
+        Parser r(regex.data(), regex.length());
+        node_ptr R = r.Parse();
+        StateMachine M = R->to_machine_dfs();
+        std::regex r1(regex);
+        std::regex r2(M.ConvertToRegularExpr());
+        StringGenerator sg;
+        for (int i = 0; i < 1000; i++) {
+            std::string curStr = sg.GenerateString(M,&generator);
+            // std::cout << curStr << std::endl; 
+            bool r1_match = regex_match(curStr, r1);
+            EXPECT_EQ(r1_match, regex_match(curStr, r2));
+        }
+        std::cout<<"test "<<i<<" done\n";
+    }
+}
+
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

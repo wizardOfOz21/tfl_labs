@@ -2,14 +2,15 @@
 #include <ctime>
 #include <iostream>
 
-RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(13, 2, 2, 2) {}
+RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(13, 2, 2, 2, 2) {}
 
-RegexGenerator::RegexGenerator(int lettersNum, int starNesting,int lookaheadNum,int alphabetSize)
-        :lettersNum(lettersNum),starNesting(starNesting),lookaheadNum(lookaheadNum) {
+RegexGenerator::RegexGenerator(int lettersNum, int starNesting,int lookaheadNum, int lookbehindNum,int alphabetSize)
+        :lettersNum(lettersNum),starNesting(starNesting),lookaheadNum(lookaheadNum), lookbehindNum(lookbehindNum) {
 
     if (lettersNum < 0) return;
     if (starNesting < 0) starNesting = 0;
     if (lookaheadNum < 0) lookaheadNum = 0;
+    if (lookbehindNum < 0) lookbehindNum = 0;
     if (alphabetSize< 1) alphabetSize= 1;
 
     for (char i = 'a'; i < 'a' + alphabetSize && i <= 'z'; i++) {
@@ -31,12 +32,12 @@ std::string RegexGenerator::GenerateRegex() {
     curLettersNum=0;
     curNesting=0;
     curLookaheadNum=0;
-    fromLookahead= false;
-    wasLookaheadInBrackets= false;
+    curLookbehindNum=0;
+    fromLook= false;
+    wasLookInBrackets= false;
     wasUnionInBrackets = false;
     needToReturn = false;
     curOpenBracketsNum=0;
-    needToClose=0;
 
     res="^";
     while(curLettersNum!=lettersNum && !needToReturn) generateRegex();
@@ -84,15 +85,15 @@ void RegexGenerator::generateConcRegex() {
     }
 }
 
-// <simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=regex$)
+// <simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=(<regex>)$?)
 void RegexGenerator::generateSimpleRegex() {
     int state = rand()%3;
     if (curLettersNum==0){
         state = rand() % 7;
         if (state != 0 && state!=2) state = 1;
     }
-    if (lookaheadNum==curLookaheadNum || fromLookahead) {
-        if (fromLookahead) {
+    if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || fromLook) {
+        if (fromLook) {
             state = rand() % 4;
             if (state != 0) state = 1;
         } else {
@@ -114,16 +115,16 @@ void RegexGenerator::generateSimpleRegex() {
             }
             generateRegex();
             res+=")";
-            if (!wasLookaheadInBrackets && needStar){
+            if (!wasLookInBrackets && needStar){
                 res+="*";
             }
             curOpenBracketsNum--;
-            if (wasLookaheadInBrackets && wasUnionInBrackets){
+            if (wasLookInBrackets && wasUnionInBrackets){
                 needToReturn = true;
                 return ;
             }
             if (curOpenBracketsNum==0){
-                wasLookaheadInBrackets= false;
+                wasLookInBrackets= false;
                 wasUnionInBrackets=false;
                 curNesting=0;
             }
@@ -147,18 +148,46 @@ void RegexGenerator::generateSimpleRegex() {
             }
             break;
         case 2:
-            curLookaheadNum++;
-            v=rand()%2;
-            res+="(?=(";
-            fromLookahead= true;
+            bool isLookbehind=false;
+            if (lookaheadNum==curLookaheadNum || lookbehindNum == curLookbehindNum) {
+                if (lookaheadNum==curLookaheadNum){
+                    curLookbehindNum++;
+                    isLookbehind=true;
+                    res+="(?<=(";
+                } else {
+                    curLookaheadNum++;
+                    res+="(?=(";
+                }
+            } else {
+                v=rand()%2;
+                if (!v){
+                    curLookbehindNum++;
+                    res+="(?<=(";
+                    isLookbehind=true;
+                } else {
+                    curLookaheadNum++;
+                    res+="(?=(";
+                }
+            }
+            if (isLookbehind){
+                v=rand()%7;
+                if (!v){
+                    res+="^";
+                }
+            }
+            fromLook= true;
             generateRegex();
-            fromLookahead= false;
-            if (curOpenBracketsNum!=0) wasLookaheadInBrackets= true;
-            v=rand()%7;
-            if (!v){
+            fromLook= false;
+            if (curOpenBracketsNum!=0) wasLookInBrackets= true;
+            if (isLookbehind){
                 res+="))";
             } else {
-                res+=")$)";
+                v=rand()%7;
+                if (!v){
+                    res+="))";
+                } else {
+                    res+=")$)";
+                }
             }
     }
 }
@@ -167,7 +196,7 @@ void RegexGenerator::generateSimpleRegex() {
 GRAMMAR:
 <regex> ::= <conc-regex> <alt> <regex> | <conc-regex>
 <conc-regex> ::= <simple-regex> | <simple-regex><conc-regex>
-<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?)
+<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=(<regex>)$?)
 <alt> ::= '|'
 <lbr> ::= '('
 <rbr> ::= ')'
