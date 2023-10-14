@@ -17,6 +17,8 @@ using std::vector;
 struct Node;
 using node_ptr = std::unique_ptr<Node>;
 
+const int FROM_START = 0;
+
 enum class NodeType {
     ALTER,
     CONCAT,
@@ -68,7 +70,7 @@ struct Node {
        (если после элементов нет - автомат, распознающий пустое слово) и возвращает конкатенацию 
        уже накопленного и пересечения lookahead-а c автоматом после.
     */
-    StateMachine to_machine_dfs(int start = 0);
+    StateMachine to_machine_dfs(int start = FROM_START);
 
     /* Преобразование в dot-описание */
     void to_graph(std::ostream& out);
