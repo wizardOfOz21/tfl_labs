@@ -63,7 +63,6 @@ StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const S
         }
     }
     std::unordered_set<int> newFinalStates;
-    auto it = stM1.finalStates.find(0);
     for (auto finalState:stM2.finalStates){
         if (finalState==0 ) {
             for (auto finalState1:stM1.finalStates) {
@@ -84,18 +83,20 @@ void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed
             dfs(i,globalUsed,curUsed,automata);
         }
     }
-
 }
 
 void fixStates(StateMachine& res){
     std::unordered_set<int> globalUsed;
     for (auto finalState: res.finalStates){
-        std::vector<char> curUsed(res.stateCount+1);
-        dfs(finalState,globalUsed,curUsed,res);
+        auto it=globalUsed.find(finalState);
+        if (it==globalUsed.end()){
+            std::vector<char> curUsed(res.stateCount+1);
+            dfs(finalState,globalUsed,curUsed,res);
+        }
     }
     for (int i=res.transitions.size()-1;i>0;i--){
-        auto it1 = globalUsed.find(i);
-        if (it1==res.finalStates.end()){
+        auto it = globalUsed.find(i);
+        if (it==globalUsed.end()){
             for(auto& row:res.transitions) row.erase(next(row.begin(), i));
             res.transitions.erase(res.transitions.begin()+i);
             res.stateCount--;

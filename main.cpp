@@ -77,8 +77,8 @@ int main(int argc, char *argv[]){
                         std::cerr << error_message << std::endl;
                         continue;
                     }
-                    std::cout<<"Original regex: "<<regex<<std::endl;
-                    std::cout<<"Converted regex: "<<convertedRegex<<std::endl<<std::endl;
+//                    std::cout<<"Original regex: "<<regex<<std::endl;
+                    std::cout<<convertedRegex<<std::endl;
                 }
             }
         }else {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]){
         } catch (std::string error_message){
             std::cerr << error_message << std::endl;
         }
-        std::cout<<"Original regex: "<<data.regex<<std::endl;
-        std::cout<<"Converted regex: "<<convertedRegex<<std::endl<<std::endl;
+//        std::cout<<"Original regex: "<<data.regex<<std::endl;
+        std::cout<<convertedRegex<<std::endl;
     }
 }

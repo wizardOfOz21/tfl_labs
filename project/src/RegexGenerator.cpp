@@ -116,7 +116,6 @@ void RegexGenerator::generateSimpleRegex() {
             res+=")";
             if (!wasLookaheadInBrackets && needStar){
                 res+="*";
-                curNesting--;
             }
             curOpenBracketsNum--;
             if (wasLookaheadInBrackets && wasUnionInBrackets){
@@ -141,12 +140,15 @@ void RegexGenerator::generateSimpleRegex() {
                 v=rand()%2;
                 if (!v) {
                     res+="*";
-                    curNesting++;
+                    if (curNesting==0){
+                        curNesting++;
+                    }
                 }
             }
             break;
         case 2:
             curLookaheadNum++;
+            v=rand()%2;
             res+="(?=(";
             fromLookahead= true;
             generateRegex();

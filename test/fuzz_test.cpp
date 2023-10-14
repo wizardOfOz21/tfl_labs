@@ -31,7 +31,7 @@ TEST(Fuzz_Test, Match_Regular_Test) {
         std::regex r2(M.ConvertToRegularExpr());
         StringGenerator sg;
         for (int i = 0; i < 1000; i++) {
-            std::string curStr = sg.GenerateString(M);
+            std::string curStr = sg.GenerateString(M,&generator);
             // std::cout << curStr << std::endl; 
             bool r1_match = regex_match(curStr, r1);
             EXPECT_EQ(r1_match, regex_match(curStr, r2));
@@ -52,7 +52,7 @@ TEST(Fuzz_Test, Match_Lookahead_Test) {
         std::regex r2(M.ConvertToRegularExpr());
         StringGenerator sg;
         for (int i = 0; i < 1000; i++) {
-            std::string curStr = sg.GenerateString(M);
+            std::string curStr = sg.GenerateString(M,&generator);
             // std::cout << curStr << std::endl; 
             bool r1_match = regex_match(curStr, r1);
             EXPECT_EQ(r1_match, regex_match(curStr, r2));
