@@ -20,7 +20,8 @@ private:
     int curLookbehindNum=0;
     bool fromLookahead= false;
     bool fromLookbehind= false;
-    bool wasLookInBrackets= false;
+    bool wasLookaheadInBrackets= false;
+    bool wasLookbehindInBrackets= false;
     bool wasUnionInBrackets = false;
     bool needToReturn = false;
     int curOpenBracketsNum=0;

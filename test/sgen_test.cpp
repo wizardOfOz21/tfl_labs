@@ -9,7 +9,7 @@
 
 
 TEST(StringGenerator_Test, Generate_From_Regex_Test) {
-    RegexGenerator generator(13, 2, 0,3, 2);
+    RegexGenerator generator(8, 2, 0,3, 2);
     for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
         std::cout << regex << std::endl;

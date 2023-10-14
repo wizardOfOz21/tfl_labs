@@ -114,6 +114,7 @@ TEST(Fuzz_Test, Match_Lookbehind_Test) {
     RegexGenerator generator(3, 2, 0, 3, 2);
     for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
+        std::cout<<regex<<std::endl;
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
         StateMachine M = R->to_machine_dfs();
