@@ -18,6 +18,31 @@ StateMachine::StateMachine(std::vector<std::vector<char>>& transitions1,std::uno
     stateCount=statesCount1;
 };
 
+bool StateMachine::Determine(const std::string& word){
+    std::unordered_set<int> curState = {0};
+    for (char ch : word) {
+        std::unordered_set<int> nStates = {};
+        for (int state : curState) {
+            std::vector<char>& trans = transitions[state];
+            for (int i = 0; i < trans.size(); ++i) {
+                if (ch == trans[i] || trans[i] == '.') {
+                    nStates.insert(i);
+                }
+            }
+        }
+        if (nStates.size() == 0) {
+            return false;
+        }
+        curState = nStates;
+    }
+    for (int state : curState) {
+        if (finalStates.find(state) != finalStates.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int StateMachine::GetStateNum() const{
     return stateCount;
 }

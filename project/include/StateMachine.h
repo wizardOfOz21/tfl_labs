@@ -23,6 +23,8 @@ public:
     }
     explicit StateMachine(int statesNum);
 
+    bool Determine(const std::string& word);
+
     StateMachine(std::vector<std::vector<char>>& transitions1,std::unordered_set<int>& finalStates1,
                  int statesCount1);
 

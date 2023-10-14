@@ -36,9 +36,9 @@ std::string RegexGenerator::GenerateRegex() {
     curOpenBracketsNum=0;
     needToClose=0;
 
-    res="^";
+    res="^(";
     while(curLettersNum!=lettersNum && !needToReturn) generateRegex();
-    res+="$";
+    res+=")$";
     return res;
 }
 
