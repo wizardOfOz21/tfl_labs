@@ -32,5 +32,5 @@ target_link_libraries(sgen_test PRIVATE GTest::GTest)
 target_include_directories(fuzz_test PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
 target_link_libraries(fuzz_test PRIVATE ${SIMPLIFIER_LIBRARIES})
 target_link_libraries(fuzz_test PRIVATE GTest::GTest)
-target_link_libraries(fuzz_test PRIVATE ${CMAKE_SOURCE_DIR}/libs/pcre2/libpcre2-8d.a)
+target_link_libraries(fuzz_test PRIVATE pcre2-8)
 

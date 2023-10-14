@@ -17,5 +17,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${SIMPLIFIER_LIBRARIES})
 target_include_directories(console PUBLIC ${SIMPLIFIER_INCLUDE_DIRS})
 target_link_libraries(console PRIVATE ${SIMPLIFIER_LIBRARIES})
 
+add_subdirectory(pcre2)
 add_subdirectory(test)
 # add_subdirectory(tests)
