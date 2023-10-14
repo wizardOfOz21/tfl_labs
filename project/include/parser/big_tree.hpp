@@ -22,6 +22,7 @@ enum class NodeType {
     CONCAT,
     ITER,
     LOOKAHEAD,
+    LOOKBEHIND,
     REGEX,
 };
 
@@ -48,6 +49,7 @@ struct Node {
     void plus_regex(node_ptr arg);
     void concat_regex(node_ptr arg);
     void lookahead_regex();
+    void lookbehind_regex();
     // оборачивает отладочное значение value в скобочки
     void paren_regex(); 
 

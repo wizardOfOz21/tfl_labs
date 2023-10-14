@@ -103,7 +103,8 @@ node_ptr Parser::ParseF() {
         skip(3);
         int pos = next_index;
         node_ptr L = ParseR0();
-        if (L->type != NodeType::REGEX) { // не бывает lookahead внутри lookahead
+        if (L->type !=
+            NodeType::REGEX) {  // не бывает lookahead внутри lookahead
             next_index = pos;
             return nullptr;
         }
@@ -113,7 +114,7 @@ node_ptr Parser::ParseF() {
             return nullptr;  // незакрытый lookahead
         }
         if (c == _RPAREN) {
-            L->lookahead_regex(); // добавляем точку со звездочкой
+            L->lookahead_regex();  // добавляем точку со звездочкой
             skip();
         } else {
             skip();
@@ -126,19 +127,47 @@ node_ptr Parser::ParseF() {
         L->type = NodeType::LOOKAHEAD;
         return L;
     }
+    if (is_lookbehind()) {
+        skip(4);
+        bool is_start = false;
+        if (next() == _START) {
+            is_start = true;
+            skip();
+        }
+        int pos = next_index;
+        node_ptr L = ParseR0();
+        if (L->type !=
+            NodeType::REGEX) {  // не бывает lookahead(behind) внутри lookbehind
+            next_index = pos;
+            return nullptr;
+        }
+        if (next() != _RPAREN) {
+            next_index = pos;
+            return nullptr;  // незакрытый lookbehind
+        }
+        skip();
+        if (!is_start) {
+            L->lookbehind_regex();  // добавляем точку со звездочкой
+        }
+        L->type = NodeType::LOOKBEHIND;
+        return L;
+    }
+
     node_ptr A = ParseA();
     if (!A) return nullptr;  // если не A, то вариантов больше нет
     if (next() == '*') {
         skip();
-        if (A->type != NodeType::REGEX) return nullptr; // нельзя итерировать что-то с lookahead
-        A->iter_regex(); // навешиваем звездочку
+        if (A->type != NodeType::REGEX)
+            return nullptr;  // нельзя итерировать что-то с lookahead
+        A->iter_regex();  // навешиваем звездочку
     }
     return A;
 }
 
 node_ptr Parser::ParseA() {
     char a = next();
-    if (check(a) || a == '.') { // с точками разбирается пересекатель автоматов, тут их не трогаем
+    if (check(a) || a == '.') {  // с точками разбирается пересекатель
+                                 // автоматов, тут их не трогаем
         skip();
         return Node::symbol_regex(a);
     }
@@ -153,6 +182,6 @@ node_ptr Parser::ParseA() {
         skip();
         if (R0->type == NodeType::REGEX) R0->paren_regex();
         return R0;
-     }
+    }
     return nullptr;
 }

@@ -20,7 +20,7 @@ void Node::iter_regex() {
 
 void Node::plus_regex(node_ptr arg) {
     assert(type == NodeType::REGEX);
-    assert(arg->type == NodeType::REGEX); 
+    assert(arg->type == NodeType::REGEX);
     value += "|" + arg->value;
     syntax_tree = s_node::_node(node_type::ALTER, std::move(syntax_tree),
                                 std::move(arg->syntax_tree));
@@ -43,6 +43,15 @@ void Node::lookahead_regex() {
                                 std::move(dot));
 }
 
+void Node::lookbehind_regex() {
+    assert(type == NodeType::REGEX);
+    value = ".*" + value;
+    s_node_ptr dot = s_node::symbol_node('.');
+    dot = s_node::_node(node_type::ITER, std::move(dot), nullptr);
+    syntax_tree = s_node::_node(node_type::CONCAT, std::move(dot),
+                                std::move(syntax_tree));
+}
+
 void Node::paren_regex() {
     assert(type == NodeType::REGEX);
     value = "(" + value + ")";
@@ -61,7 +70,6 @@ void Node::merge_node(node_ptr arg) {
         args.push_back(std::move(p));
     }
 }
-
 
 StateMachine Node::to_machine_dfs(int start) {
     switch (type) {
@@ -157,7 +165,15 @@ void Node::to_graph_dfs(std::ostream& out, const string& parent_name) {
                               std::to_string(Node::graph_vertex_count++) +
                               ": " + value + "\"";
             out << parent_name << "->" << own_name << std::endl;
-            out << own_name << "[peripheries=2]" << std::endl;
+            out << own_name << "[shape=rarrow]" << std::endl;
+            break;
+        }
+        case NodeType::LOOKBEHIND: {
+            string own_name = "\"" +
+                              std::to_string(Node::graph_vertex_count++) +
+                              ": " + value + "\"";
+            out << parent_name << "->" << own_name << std::endl;
+            out << own_name << "[shape=larrow]" << std::endl;
             break;
         }
     };
