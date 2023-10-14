@@ -118,7 +118,7 @@ void RegexGenerator::generateSimpleRegex() {
             }
             generateRegex();
             res+=")";
-            if (!wasLookaheadInBrackets && needStar && !wasLookbehindInBrackets){
+            if (!wasLookaheadInBrackets && needStar && !wasLookbehindInBrackets && fromLookbehind){
                 res+="*";
             }
             curOpenBracketsNum--;
