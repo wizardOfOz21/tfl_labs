@@ -2,7 +2,7 @@
 #include <ctime>
 #include <iostream>
 
-RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(13, 2, 2, 2, 2) {}
+RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(6, 2, 2, 2, 2) {}
 
 RegexGenerator::RegexGenerator(int lettersNum, int starNesting,int lookaheadNum, int lookbehindNum,int alphabetSize)
         :lettersNum(lettersNum),starNesting(starNesting),lookaheadNum(lookaheadNum), lookbehindNum(lookbehindNum) {
@@ -87,14 +87,14 @@ void RegexGenerator::generateConcRegex() {
     }
 }
 
-// <simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=(<regex>)$?)
+// <simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=^?(<regex>))
 void RegexGenerator::generateSimpleRegex() {
     int state = rand()%3;
     if (curLettersNum==0){
         state = rand() % 7;
         if (state != 0 && state!=2) state = 1;
     }
-    if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || (lookaheadNum=curLookaheadNum && wasUnionInBrackets)
+    if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || (lookaheadNum==curLookaheadNum && wasUnionInBrackets)
             || fromLookahead || fromLookbehind) {
         if (fromLookahead || fromLookbehind) {
             state = rand() % 4;
@@ -208,10 +208,16 @@ void RegexGenerator::generateSimpleRegex() {
 GRAMMAR:
 <regex> ::= <conc-regex> <alt> <regex> | <conc-regex>
 <conc-regex> ::= <simple-regex> | <simple-regex><conc-regex>
-<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=(<regex>)$?)
+<simple-regex> ::= <lbr><regex><rbr><unary>? | буква <unary>? | (?=(<regex>)$?) | (?<=^?(<regex>))
 <alt> ::= '|'
 <lbr> ::= '('
 <rbr> ::= ')'
 <unary> ::= '*'
 */
-// при этом дополнительно не допускаются lookahead вложенные и под звездой
+
+// при этом дополнительно не допускаются lookahead вложенные и под звездой, а также не может после альтернативы
+// с lookahead идти конкатенация
+
+// в lookbehind внутри не может быть алтернативы и *
+// действуют те же, ограничения, что и на lookahead кроме последнего (вместо него перед альтернативой с lookbehind
+// не может идти конкатенация
