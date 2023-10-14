@@ -88,7 +88,8 @@ node_ptr Parser::ParseT() {
     }
     if (!regex_accum) {
         if (node_accum->args.size() == 1 &&
-            node_accum->args[0]->type != NodeType::LOOKAHEAD) {
+            node_accum->args[0]->type != NodeType::LOOKAHEAD &&
+            node_accum->args[0]->type != NodeType::LOOKBEHIND) {
             return std::move(node_accum->args[0]);
         }
         return node_accum;
