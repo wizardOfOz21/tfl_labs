@@ -19,6 +19,9 @@ run-all-tests:
 	./build/test/to_regex_test
 	./build/test/tset_test
 
+run-test:
+	./build/test/sgen_test
+
 run-fuzz:
 	./build/test/fuzz_test
 

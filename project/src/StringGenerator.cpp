@@ -45,6 +45,10 @@ std::string StringGenerator::GenerateString(const StateMachine& stM, RegexGenera
             v = rand()%validTrans.size();
             Q.push(validTrans[v]);
             auto curStr=std::string(1,stM.transitions[curState][validTrans[v]]);
+            if (curStr=="."){
+                int v=rand()%26;
+                curStr ='a'+v;
+            }
             res+=curStr;
             v=rand()%20;
             if (!v || v==3 || v==4){
