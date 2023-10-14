@@ -34,7 +34,7 @@ TEST(Convert_Test, Convert_Test) {
 
 TEST(Fuzz_Test, Match_Regular_Test) {
     RegexGenerator generator(4, 2, 0, 0, 2);
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 100; ++i) {
         string regex = generator.GenerateRegex();
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
@@ -73,7 +73,7 @@ TEST(Fuzz_Test, Match_Regular_Test) {
 
 TEST(Fuzz_Test, Match_Lookahead_Test) {
     RegexGenerator generator(3, 2, 3, 0, 2);
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
@@ -112,7 +112,7 @@ TEST(Fuzz_Test, Match_Lookahead_Test) {
 
 TEST(Fuzz_Test, Match_Lookbehind_Test) {
     RegexGenerator generator(3, 2, 0, 3, 2);
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
