@@ -111,10 +111,9 @@ StateMachine Node::to_machine_dfs(int start) {
                             np->to_machine_dfs(), to_machine_dfs(i + 1)));
                 }
                 if (np->type == NodeType::LOOKBEHIND) {
-                    return StateMachine::ConcatStateMachines(
-                        StateMachine::IntersectStateMachines(
-                            np->to_machine_dfs(), accum),
-                        to_machine_dfs(i + 1));
+                    accum = StateMachine::IntersectStateMachines(
+                            np->to_machine_dfs(), accum);
+                    continue;
                 }
                 accum = StateMachine::ConcatStateMachines(accum,
                                                           np->to_machine_dfs());
