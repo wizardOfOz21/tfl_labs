@@ -51,7 +51,7 @@ std::string RegexGenerator::GenerateRegex() {
 void RegexGenerator::generateRegex(){
     int state;
     if (lettersNum==curLettersNum) return;
-    if (lettersNum-curLettersNum<2) state=0;
+    if (lettersNum-curLettersNum<2 || fromLookbehind) state=1;
     else state=rand()%2;
     switch (state) {
         case 0:
