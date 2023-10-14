@@ -16,7 +16,7 @@ std::string StringGenerator::GenerateString(const StateMachine& stM, RegexGenera
             if (v==0){
                 break;
             }
-            if (rg== nullptr){
+            if (rg == nullptr){
                 res+='a'+v;
             } else {
                 res+=rg->randSymb();
