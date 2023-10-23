@@ -16,15 +16,20 @@ private:
 
     int curLettersNum=0;
     int curNesting=0;
+    int curNestingOnThisLevel=0;
     int curLookaheadNum=0;
     int curLookbehindNum=0;
+    int curOpenBracketsNum=0;
+
     bool fromLookahead= false;
     bool fromLookbehind= false;
     bool wasLookaheadInBrackets= false;
     bool wasLookbehindInBrackets= false;
+
     bool wasUnionInBrackets = false;
     bool needToReturn = false;
-    int curOpenBracketsNum=0;
+    bool needRestrictionsForLookbehind = true; // если true то внутри lookbehind не может быть * и |
+
     std::string res;
 
     void generateRegex();
@@ -35,7 +40,7 @@ private:
 
 public:
     RegexGenerator();
-    RegexGenerator(int lettersNum, int starNesting,int lookaheadNum, int lookbehindNum,int alphabetSize);
+    RegexGenerator(int lettersNum, int starNesting,int lookaheadNum, int lookbehindNum,int alphabetSize, bool needRestrictionsForLookbehind=true);
     std::string GenerateRegex();
 };
 

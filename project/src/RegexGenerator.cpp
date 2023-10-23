@@ -2,10 +2,13 @@
 #include <ctime>
 #include <iostream>
 
-RegexGenerator::RegexGenerator() : RegexGenerator::RegexGenerator(6, 2, 2, 2, 2) {}
+RegexGenerator::RegexGenerator()
+        : RegexGenerator::RegexGenerator(6, 2, 2, 2, 2) {}
 
-RegexGenerator::RegexGenerator(int lettersNum, int starNesting,int lookaheadNum, int lookbehindNum,int alphabetSize)
-        :lettersNum(lettersNum),starNesting(starNesting),lookaheadNum(lookaheadNum), lookbehindNum(lookbehindNum) {
+RegexGenerator::RegexGenerator(int lettersNum, int starNesting,int lookaheadNum,
+                               int lookbehindNum,int alphabetSize,bool needRestrictionsForLookbehind)
+        :lettersNum(lettersNum),starNesting(starNesting),lookaheadNum(lookaheadNum),
+         lookbehindNum(lookbehindNum), needRestrictionsForLookbehind(needRestrictionsForLookbehind) {
 
     if (lettersNum < 0) return;
     if (starNesting < 0) starNesting = 0;
@@ -52,12 +55,13 @@ std::string RegexGenerator::GenerateRegex() {
 void RegexGenerator::generateRegex(){
     int state;
     if (lettersNum==curLettersNum) return;
-    if (lettersNum-curLettersNum<2 || fromLookbehind) state=1;
+    if (lettersNum-curLettersNum<2 || (fromLookbehind && needRestrictionsForLookbehind)) state=1;
     else state=rand()%2;
     switch (state) {
         case 0:
             generateConcRegex();
-            if (lettersNum==curLettersNum || needToReturn || wasLookbehindInBrackets) {
+            if (lettersNum==curLettersNum || needToReturn ||
+                (wasLookbehindInBrackets && needRestrictionsForLookbehind)) {
                 return;
             }
             if (curOpenBracketsNum!=0){
@@ -95,7 +99,7 @@ void RegexGenerator::generateSimpleRegex() {
         if (state != 0 && state!=2) state = 1;
     }
     if ((lookaheadNum==curLookaheadNum && lookbehindNum == curLookbehindNum) || (lookaheadNum==curLookaheadNum && wasUnionInBrackets)
-            || fromLookahead || fromLookbehind) {
+        || fromLookahead || fromLookbehind) {
         if (fromLookahead || fromLookbehind) {
             state = rand() % 4;
             if (state != 0) state = 1;
@@ -116,10 +120,15 @@ void RegexGenerator::generateSimpleRegex() {
                     curNesting++;
                 }
             }
+            curNestingOnThisLevel=curNesting;
             generateRegex();
             res+=")";
-            if (!wasLookaheadInBrackets && needStar && !wasLookbehindInBrackets && !fromLookbehind){
+            if (!wasLookaheadInBrackets && needStar && !wasLookbehindInBrackets &&
+                (!fromLookbehind || !needRestrictionsForLookbehind)){
                 res+="*";
+                curNesting--;
+            } else if (needStar) {
+                curNesting-=2;
             }
             curOpenBracketsNum--;
             if (wasLookaheadInBrackets && wasUnionInBrackets){
@@ -143,11 +152,8 @@ void RegexGenerator::generateSimpleRegex() {
             curLettersNum++;
             if (curNesting!=starNesting){
                 v=rand()%2;
-                if (!v && !fromLookbehind) {
+                if (!v && (!fromLookbehind || !needRestrictionsForLookbehind)) {
                     res+="*";
-                    if (curNesting==0){
-                        curNesting++;
-                    }
                 }
             }
             break;
@@ -218,6 +224,5 @@ GRAMMAR:
 // при этом дополнительно не допускаются lookahead вложенные и под звездой, а также не может после альтернативы
 // с lookahead идти конкатенация
 
-// в lookbehind внутри не может быть алтернативы и *
-// действуют те же, ограничения, что и на lookahead кроме последнего (вместо него перед альтернативой с lookbehind
-// не может идти конкатенация
+// в lookbehind действуют те же, ограничения, что и на lookahead кроме последнего
+// (вместо него перед альтернативой с lookbehind не может идти конкатенация)
