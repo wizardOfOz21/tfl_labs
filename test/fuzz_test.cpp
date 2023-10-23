@@ -111,7 +111,7 @@ TEST(Fuzz_Test, Match_Lookahead_Test) {
 }
 
 TEST(Fuzz_Test, Match_Lookbehind_Test) {
-    RegexGenerator generator(3, 2, 0, 3, 2);
+    RegexGenerator generator(3, 2, 0, 3, 2, false);
     for (int i = 0; i < 1000; ++i) {
         string regex = generator.GenerateRegex();
         Parser r(regex.data(), regex.length());
@@ -119,72 +119,57 @@ TEST(Fuzz_Test, Match_Lookbehind_Test) {
         StateMachine M = R->to_machine_dfs();
         std::string converted = M.ConvertToRegularExpr();
 
-        pcre2_code *original = re_compile(regex);
         pcre2_code *result = re_compile(converted);
-        assert(original != NULL);
-        assert(result != NULL);
 
-        pcre2_match_data *match_data1 =
-            pcre2_match_data_create_from_pattern(original, NULL);
-        pcre2_match_data *match_data2 =
+        pcre2_match_data *match_data =
             pcre2_match_data_create_from_pattern(result, NULL);
 
         StringGenerator sg;
-        for (int i = 0; i < 1000; i++) {
+        for (int j = 0; j < 1000; j++) {
             std::string curStr = sg.GenerateString(M);
-            int match_code_orig = re_match(original, curStr, match_data1);
-            int match_code_res = re_match(result, curStr, match_data2);
+            int match_code_orig = M.Determine(curStr);
+            int match_code_res = re_match(result, curStr, match_data);
 
-            if (match_code_orig == PCRE2_ERROR_MATCHLIMIT)
+            if (match_code_res == PCRE2_ERROR_MATCHLIMIT) {
                 continue;  // если всё-таки не вывезла
-            if (match_code_res == PCRE2_ERROR_MATCHLIMIT) continue;
+            }
 
-            EXPECT_EQ(match_code_orig >= 0, match_code_res >= 0);
+            EXPECT_EQ(match_code_orig, match_code_res >= 0);
         }
 
-        pcre2_match_data_free(match_data1);
-        pcre2_match_data_free(match_data2);
-        pcre2_code_free(original);
+        pcre2_match_data_free(match_data);
         pcre2_code_free(result);
     }
 }
 
 TEST(Fuzz_Test, Match_Lookbehind_and_Lookahead_Test) {
-    RegexGenerator generator(3, 2, 3, 3, 2);
+    RegexGenerator generator(3, 2, 3, 3, 2, false);
     for (int i = 0; i < 100; ++i) {
         string regex = generator.GenerateRegex();
-        // std::cout<<regex<<std::endl;
         Parser r(regex.data(), regex.length());
         node_ptr R = r.Parse();
         StateMachine M = R->to_machine_dfs();
         std::string converted = M.ConvertToRegularExpr();
 
-        pcre2_code *original = re_compile(regex);
         pcre2_code *result = re_compile(converted);
-        assert(original != NULL);
-        assert(result != NULL);
 
-        pcre2_match_data *match_data1 =
-            pcre2_match_data_create_from_pattern(original, NULL);
-        pcre2_match_data *match_data2 =
+        pcre2_match_data *match_data =
             pcre2_match_data_create_from_pattern(result, NULL);
 
         StringGenerator sg;
         for (int i = 0; i < 1000; i++) {
             std::string curStr = sg.GenerateString(M);
-            int match_code_orig = re_match(original, curStr, match_data1);
-            int match_code_res = re_match(result, curStr, match_data2);
+            int match_code_orig = M.Determine(curStr);
+            int match_code_res = re_match(result, curStr, match_data);
 
-            if (match_code_orig == PCRE2_ERROR_MATCHLIMIT)
+            if (match_code_res == PCRE2_ERROR_MATCHLIMIT) {
                 continue;  // если всё-таки не вывезла
-            if (match_code_res == PCRE2_ERROR_MATCHLIMIT) continue;
+            }
 
-            EXPECT_EQ(match_code_orig >= 0, match_code_res >= 0);
+            EXPECT_EQ(match_code_orig, match_code_res >= 0);
         }
 
-        pcre2_match_data_free(match_data1);
-        pcre2_match_data_free(match_data2);
-        pcre2_code_free(original);
+        pcre2_match_data_free(match_data);
         pcre2_code_free(result);
     }
 }

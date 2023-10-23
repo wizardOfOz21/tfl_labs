@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_link_options(-coverage -lgcov)
 
-#enable_testing()
 add_subdirectory(project)
 
 add_executable(${PROJECT_NAME} main.cpp)
@@ -19,4 +18,3 @@ target_link_libraries(console PRIVATE ${SIMPLIFIER_LIBRARIES})
 
 add_subdirectory(pcre2)
 add_subdirectory(test)
-# add_subdirectory(tests)

@@ -19,6 +19,9 @@ StateMachine::StateMachine(std::vector<std::vector<char>>& transitions1,std::uno
 };
 
 bool StateMachine::Determine(const std::string& word){
+    if (stateCount == 0 && finalStates.empty()) {
+        return false;
+    }
     std::unordered_set<int> curState = {0};
     for (char ch : word) {
         std::unordered_set<int> nStates = {};
