@@ -1,4 +1,4 @@
-.PHONY: generate build-project run run-all-tests valgrind-run run-fuzz
+.PHONY: generate build-project run test valgrind-run run-fuzz
 .SILENT: run
 
 generate:
@@ -7,6 +7,12 @@ generate:
 
 build-project:
 	cd ./build && cmake .. && make --no-print-directory
+
+test-member:
+	./build/test/membership_test
+
+test-equal:
+	./build/test/equal_test
 
 run:
 	./build/lab3
