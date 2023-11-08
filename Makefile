@@ -15,7 +15,7 @@ test-equal:
 	./build/test/equal_test
 
 run:
-	./build/lab3
+	./build/lab3 -a abc -ra 10 -ml 5 -pi 10
 
 valgrind-run:
 	valgrind --tool=memcheck make run

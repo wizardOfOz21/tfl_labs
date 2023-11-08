@@ -28,13 +28,13 @@ private:
     std::map<std::string,std::string,custom_string_comparer> additionalTable;
     std::unordered_map<std::string,std::string> classesOfEquivalence;
     std::string alphabet;
-    std::unique_ptr<IMAT> MAT;
+    std::shared_ptr<IMAT> MAT;
 
     void updateClassesOfEquivalence();
     void fillRecognitionStringForAdditionalTable(const std::string& curPrefix);
     void fillRecognitionStringForMainTable(const std::string& curPrefix);
 public:
-    explicit EquivalenceClassesTable(std::string& alphabet,std::unique_ptr<IMAT> MAT);
+    explicit EquivalenceClassesTable(std::string& alphabet,std::shared_ptr<IMAT> MAT);
 
     StateMachine BuildDFA();
 
@@ -46,7 +46,7 @@ public:
     bool MakeConsistent();
 
     static std::unique_ptr<StateMachine> LStar
-    (std::string& alphabet,int maxNumOfEquivClasses,int maxLenOfWord, std::unique_ptr<IMAT> MAT);
+    (std::string& alphabet,int maxNumOfEquivClasses,int maxLenOfWord, std::shared_ptr<IMAT> MAT);
 
     ~EquivalenceClassesTable()=default;
 };

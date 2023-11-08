@@ -29,8 +29,10 @@ public:
     std::vector<std::vector<std::string>> GetTransitions();
     bool IsWordBelong(const std::string& word);
     bool IsFinal(int state);
+    bool IsAnyCycle();
+    bool dfs (int v, std::vector<int>& colors);
 
-    static void To_Graph(const StateMachine& M, std::ostream& out);
+    static void To_Graph(StateMachine& M, std::ostream& out);
 
     ~StateMachine()=default;
 };

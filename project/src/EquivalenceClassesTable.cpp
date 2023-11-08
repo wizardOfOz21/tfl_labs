@@ -1,7 +1,8 @@
 #include "EquivalenceClassesTable.h"
 #include <fstream>
+#include <utility>
 
-EquivalenceClassesTable::EquivalenceClassesTable(std::string& alphabet,std::unique_ptr<IMAT> MAT)
+EquivalenceClassesTable::EquivalenceClassesTable(std::string& alphabet,std::shared_ptr<IMAT> MAT)
 :alphabet(alphabet),MAT(std::move(MAT)){
     mainTable[""]="";
     suffixes.emplace_back("");
@@ -154,14 +155,10 @@ StateMachine EquivalenceClassesTable::BuildDFA() {
 }
 
 std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
-(std::string& alphabet,int maxNumOfEquivClasses, int maxLenOfWord, std::unique_ptr<IMAT> MAT){
+(std::string& alphabet,int maxNumOfEquivClasses, int maxLenOfWord, std::shared_ptr<IMAT> MAT){
     EquivalenceClassesTable equivTable(alphabet,std::move(MAT));
     StateMachine DFA;
-    int i=0;
     while (true){
-        if (i==2){
-            return nullptr;
-        }
         equivTable.updateClassesOfEquivalence();
         if (equivTable.classesOfEquivalence.size()>=maxNumOfEquivClasses){
             return nullptr;
@@ -169,23 +166,19 @@ std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
         equivTable.AddNewKeysToAdditionalTable();
         equivTable.FillAdditionalTable();
 
-        bool f= true;
+        bool f = true;
         while (f) {
             equivTable.MakeComplete();
             f = equivTable.MakeConsistent();
         }
 
         DFA = equivTable.BuildDFA();
-        std::ofstream out("out"+std::to_string(i));
-        StateMachine::To_Graph(DFA,out);
-        out.close();
 
-        auto verdict=equivTable.MAT->IsEqual(DFA);
+        auto verdict=equivTable.MAT->IsEqual(DFA,alphabet,maxLenOfWord);
         if (verdict=="equal"){
             break;
         }
         equivTable.AddWordAndItsPrefixesToMainTable(verdict);
-        i++;
     }
     return std::make_unique<StateMachine>(DFA);
 }

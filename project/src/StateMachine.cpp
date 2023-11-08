@@ -42,7 +42,7 @@ void StateMachine::SetFinalStates(std::unordered_set<int> final) {
     finalStates=std::move(final);
 }
 
-void StateMachine::To_Graph(const StateMachine& M, std::ostream& out) {
+void StateMachine::To_Graph(StateMachine& M, std::ostream& out) {
     out << "digraph {" << std::endl;
     out << 0 << " [color=\"green\"]" << std::endl;
     for (int state : M.finalStates) {
@@ -98,4 +98,28 @@ bool StateMachine::IsWordBelong(const std::string& word){
         }
     }
     return false;
+}
+
+bool StateMachine::dfs (int v, std::vector<int>& colors) {
+    colors[v] = 1; // grey
+    for (int i=0;i<transitions.size();i++){
+        if (!transitions[v][i].empty()){
+            if (colors[i]==0){ // white
+                if (dfs(i,colors)){
+                    return true;
+                }
+            }
+            if (colors[i]==1){ // grey
+                return true;
+            }
+        }
+    }
+    colors[v]=2; // black
+    return false;
+}
+
+bool StateMachine::IsAnyCycle(){
+    // 0-white, 1-grey, 2-black
+    std::vector<int> colors(stateCount+1);
+    return dfs(0,colors);
 }
