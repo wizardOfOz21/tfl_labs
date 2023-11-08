@@ -46,7 +46,7 @@ public:
     bool MakeConsistent();
 
     static std::unique_ptr<StateMachine> LStar
-    (std::string& alphabet,int maxNumOfEquivClasses, std::unique_ptr<IMAT> MAT);
+    (std::string& alphabet,int maxNumOfEquivClasses,int maxLenOfWord, std::unique_ptr<IMAT> MAT);
 
     ~EquivalenceClassesTable()=default;
 };

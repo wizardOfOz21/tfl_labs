@@ -154,7 +154,7 @@ StateMachine EquivalenceClassesTable::BuildDFA() {
 }
 
 std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
-(std::string& alphabet,int maxNumOfEquivClasses, std::unique_ptr<IMAT> MAT){
+(std::string& alphabet,int maxNumOfEquivClasses, int maxLenOfWord, std::unique_ptr<IMAT> MAT){
     EquivalenceClassesTable equivTable(alphabet,std::move(MAT));
     StateMachine DFA;
     int i=0;

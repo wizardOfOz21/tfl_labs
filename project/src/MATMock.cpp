@@ -1,44 +1,50 @@
 #include "MATMock.h"
 #include <sstream>
 
-MATMock::MATMock(StateMachine& m): ideal(m){}
+MATMock::MATMock(StateMachine& m, std::string& alphabet, int maxLenOfWord)
+: ideal(m),maxLenOfWord(maxLenOfWord),alphabet(alphabet){}
 
 bool MATMock::IsMembership(const std::string& word){
-    int stateCount=ideal.GetStateNum();
-    auto finalStates=ideal.GetFinalStates();
-    auto transitions = ideal.GetTransitions();
+   return ideal.IsWordBelong(word);
+}
 
-    if (stateCount == 0 && finalStates.empty()) {
-        return false;
+std::string arrToStr(std::vector<std::string>& permutation){
+    std::string res;
+    for (auto str: permutation){
+        res+=str;
     }
-    std::unordered_set<int> curState = {0};
-    for (char ch : word) {
-        std::unordered_set<int> nStates = {};
-        for (int state : curState) {
-            std::vector<std::string>& trans = transitions[state];
-            for (int i = 0; i < trans.size(); ++i) {
-                std::stringstream ss(trans[i]);
-                std::string word1;
-                while (ss >> word1) {
-                    if (std::string(1,ch) == word1 || word1 == std::string(1,'.')) {
-                        nStates.insert(i);
-                    }
-                }
-            }
-        }
-        if (nStates.empty()) {
-            return false;
-        }
-        curState = nStates;
+    return res;
+}
+
+void MATMock::checkPermutationsWithLen(StateMachine& M,
+                                              const std::string& alphabet,std::vector<std::string>& permutation,
+                                              int len,int curIndex, std::string *res){
+    if (*res != "equal"){
+        return;
     }
-    for (int state : curState) {
-        if (ideal.IsFinal(state)) {
-            return true;
+    if(curIndex == len){
+        auto perm=arrToStr(permutation);
+        if (IsMembership(perm) != M.IsWordBelong(perm)){
+            *res= perm;
         }
     }
-    return false;
+    else{
+        for(int i = 0; i < alphabet.size(); i++){
+            permutation[curIndex] = std::string(1,alphabet[i]);
+            checkPermutationsWithLen(M,alphabet,permutation,
+                            len,curIndex+1,res);
+        }
+    }
 }
 
 std::string MATMock::IsEqual(StateMachine& M) {
-    return "aa";
+    for (int i=1;i<=maxLenOfWord;i++){
+        std::vector<std::string> permutation(i);
+        std::string res = "equal";
+        checkPermutationsWithLen(M,alphabet,permutation,i,0,&res);
+        if (res!= "equal"){
+            return res;
+        }
+    }
+    return "equal";
 }

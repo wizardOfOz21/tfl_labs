@@ -27,7 +27,7 @@ public:
     [[nodiscard]] int GetStateNum() const;
     std::unordered_set<int> GetFinalStates();
     std::vector<std::vector<std::string>> GetTransitions();
-    std::string ConvertToRegularExpr();
+    bool IsWordBelong(const std::string& word);
     bool IsFinal(int state);
 
     static void To_Graph(const StateMachine& M, std::ostream& out);
