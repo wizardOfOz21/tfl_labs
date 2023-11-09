@@ -5,12 +5,13 @@
 class MainAlgorithm{
 private:
     std::vector<std::unique_ptr<StateMachine>> prefixLanguage;
+    std::vector<std::unique_ptr<StateMachine>> suffixLanguage;
     std::string alphabet;
     int admissionToRegularity;
     int maxLenOfWord;
     int maxNumOfItersForSymmetricPump;
 
-    void fillPrefixLanguage(std::shared_ptr<IMAT> MAT);
+    void fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& mode);
 public:
     MainAlgorithm(std::string& alphabet,int admissionToRegularity,
                   int maxLenOfWord,int maxNumOfItersForSymmetricPump);
