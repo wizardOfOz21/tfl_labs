@@ -5,10 +5,14 @@
 #include <unordered_set>
 
 class StateMachine {
+    friend void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed,
+                     StateMachine& automata);
 private:
     int stateCount;
     std::vector<std::vector<std::string>> transitions;
     std::unordered_set<int> finalStates;
+
+    bool dfs (int v, std::vector<int>& colors);
 
 public:
     StateMachine(){
@@ -30,7 +34,7 @@ public:
     bool IsWordBelong(const std::string& word);
     bool IsFinal(int state);
     bool IsAnyCycle();
-    bool dfs (int v, std::vector<int>& colors);
+    void FixStates();
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 

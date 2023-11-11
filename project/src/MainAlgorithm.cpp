@@ -46,13 +46,14 @@ void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& m
                     (curStr,maxStateCount[i-1]+admissionToRegularity,
                      maxLenOfWord,MAT,mode);
             if (automata!= nullptr){
-                std::ofstream out(mode+"out_"+curStr);
-                StateMachine::To_Graph(*automata, out);
-                out.close();
+                automata->FixStates();
                 if (automata->IsAnyCycle()){
                     if (automata->GetStateNum()>maxStateCount[i]){
                         maxStateCount[i]=automata->GetStateNum();
                     }
+                    std::ofstream out(mode+"out_"+curStr);
+                    StateMachine::To_Graph(*automata, out);
+                    out.close();
                     if (mode==PREFIX_MODE){
                         prefixLanguage.emplace_back(std::move(automata));
                     } else {
@@ -70,5 +71,8 @@ void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& m
 void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT){
     fillLanguage(MAT,PREFIX_MODE);
     fillLanguage(MAT, SUFFIX_MODE);
+    if (prefixLanguage.empty() || suffixLanguage.empty()){
+        std::cout<<"unreal";
+    }
     int a=1;
 }

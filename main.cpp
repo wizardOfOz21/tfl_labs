@@ -54,31 +54,33 @@ int main(int argc, char *argv[]){
     InputData data;
     parseFlags(argc,argv,data);
 
-    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
-                                                {"", "a", "b", "a", "",""},
-                                                {"", "a", "b", "a", "",""},
-                                                {"", "", "", "", "a","b"},
-                                                {"", "", "", "", "",""},
-                                                {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStates1{4, 5};
-    StateMachine automata1(vect1, finalStates1, 5);
+//    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
+//                                                {"", "a", "b", "a", "",""},
+//                                                {"", "a", "b", "a", "",""},
+//                                                {"", "", "", "", "a","b"},
+//                                                {"", "", "", "", "",""},
+//                                                {"", "", "", "", "",""}};
+//    std::unordered_set<int> finalStates1{4, 5};
+//    StateMachine automata1(vect1, finalStates1, 5);
 
-    std::vector<std::vector<std::string>> prefixes{{"", "c", "", "", "",""},
-                                                   {"", "", "d", "", "",""},
-                                                   {"", "", "", "a", "",""},
-                                                   {"", "", "", "", "a","b"},
+    //(a|b)*a(c|a)
+    std::vector<std::vector<std::string>> prefixes{{"", "a", "b", "a", "",""},
+                                                   {"", "a", "b", "a", "",""},
+                                                   {"", "a", "b", "a", "",""},
+                                                   {"", "", "", "", "a","c"},
                                                    {"", "", "", "", "",""},
                                                    {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStatesPrefixes{0,1,2,3,4,5};
+    std::unordered_set<int> finalStatesPrefixes{1,2,3,4,5};
     StateMachine automataPrefixes(prefixes, finalStatesPrefixes, 5);
 
-    std::vector<std::vector<std::string>> suffixes{{"", "a", "b", "", "",""},
+    // (c|a)a(a|b)*
+    std::vector<std::vector<std::string>> suffixes{{"", "c", "a", "", "",""},
                                                    {"", "", "", "a", "",""},
                                                    {"", "", "", "a", "",""},
-                                                   {"", "", "", "", "d",""},
-                                                   {"", "", "", "", "","c"},
-                                                   {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStatesSuffixes{0,1,2,3,4,5};
+                                                   {"", "", "", "", "a","b"},
+                                                   {"", "", "", "", "a","b"},
+                                                   {"", "", "", "", "a","b"}};
+    std::unordered_set<int> finalStatesSuffixes{1,2,3,4,5};
     StateMachine automataSuffixes(suffixes, finalStatesSuffixes, 5);
 
     std::ofstream out("res");

@@ -3,6 +3,7 @@
 #include <queue>
 #include "StateMachine.h"
 #include <sstream>
+#include <set>
 
 StateMachine::StateMachine(int statesNum){
     std::vector<std::string> v(statesNum+1);
@@ -122,4 +123,43 @@ bool StateMachine::IsAnyCycle(){
     // 0-white, 1-grey, 2-black
     std::vector<int> colors(stateCount+1);
     return dfs(0,colors);
+}
+
+void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed, StateMachine& automata) {
+    curUsed[v] = true;
+    globalUsed.insert(v);
+    for (int i=0;i<automata.transitions.size();i++){
+        if (automata.transitions[i][v]!="" && !curUsed[i]){
+            dfs(i,globalUsed,curUsed,automata);
+        }
+    }
+}
+
+void StateMachine::FixStates(){
+    std::unordered_set<int> globalUsed;
+    for (auto finalState: finalStates){
+        auto it=globalUsed.find(finalState);
+        if (it==globalUsed.end()){
+            std::vector<char> curUsed(stateCount+1);
+            ::dfs(finalState,globalUsed,curUsed, *this);
+        }
+    }
+    for (int i=transitions.size()-1;i>0;i--){
+        auto it = globalUsed.find(i);
+        if (it==globalUsed.end()){
+            for(auto& row:transitions) row.erase(next(row.begin(), i));
+            transitions.erase(transitions.begin()+i);
+            stateCount--;
+            std::set<int> needToChange;
+            for (auto finalState: finalStates){
+                if (finalState>i){
+                    needToChange.insert(finalState);
+                }
+            }
+            for (auto j : needToChange){
+                finalStates.erase(j);
+                finalStates.insert(j-1);
+            }
+        }
+    }
 }
