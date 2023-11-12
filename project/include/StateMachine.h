@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <stack>
+#include <list>
 
 class StateMachine {
     friend void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed,
@@ -13,7 +15,10 @@ private:
     std::unordered_set<int> finalStates;
 
     bool dfs (int v, std::vector<int>& colors);
-
+    bool circuit(int v,
+                 const int start, std::vector<int>& stack,
+                 std::vector<bool>& blocked,std::vector<std::list<int>>&b,
+                 std::vector<std::vector<std::string>>& cycles);
 public:
     StateMachine(){
         transitions=std::vector<std::vector<std::string>>();
@@ -35,6 +40,8 @@ public:
     bool IsFinal(int state);
     bool IsAnyCycle();
     void FixStates();
+
+    bool FindCycles(std::vector<std::vector<std::string>>& cycles);
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 

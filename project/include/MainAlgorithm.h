@@ -4,8 +4,10 @@
 
 class MainAlgorithm{
 private:
-    std::vector<std::unique_ptr<StateMachine>> prefixLanguage;
-    std::vector<std::unique_ptr<StateMachine>> suffixLanguage;
+    std::vector<std::shared_ptr<StateMachine>> prefixLanguage;
+    std::vector<std::string> prefixLanguageStr;
+    std::vector<std::shared_ptr<StateMachine>> suffixLanguage;
+    std::vector<std::string> suffixLanguageStr;
     std::string alphabet;
     int admissionToRegularity;
     int maxLenOfWord;

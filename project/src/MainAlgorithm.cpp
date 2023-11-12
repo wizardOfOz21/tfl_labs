@@ -56,8 +56,10 @@ void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& m
                     out.close();
                     if (mode==PREFIX_MODE){
                         prefixLanguage.emplace_back(std::move(automata));
+                        prefixLanguageStr.emplace_back(curStr);
                     } else {
                         suffixLanguage.emplace_back(std::move(automata));
+                        suffixLanguageStr.emplace_back(curStr);
                     }
                 }
             } else {
@@ -74,5 +76,12 @@ void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT){
     if (prefixLanguage.empty() || suffixLanguage.empty()){
         std::cout<<"unreal";
     }
-    int a=1;
+    for (auto pref:prefixLanguage){
+        std::vector<std::vector<std::string>> prefixCycles(pref->GetStateNum()+1);
+        pref->FindCycles(prefixCycles);
+        for (auto suff:suffixLanguage){
+            std::vector<std::vector<std::string>> suffixCycles(suff->GetStateNum()+1);
+            suff->FindCycles(suffixCycles);
+        }
+    }
 }

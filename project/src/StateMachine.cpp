@@ -4,6 +4,7 @@
 #include "StateMachine.h"
 #include <sstream>
 #include <set>
+#include <list>
 
 StateMachine::StateMachine(int statesNum){
     std::vector<std::string> v(statesNum+1);
@@ -123,6 +124,75 @@ bool StateMachine::IsAnyCycle(){
     // 0-white, 1-grey, 2-black
     std::vector<int> colors(stateCount+1);
     return dfs(0,colors);
+}
+
+void unblock(int v,std::vector<bool>& blocked,std::vector<std::list<int>>&b){
+    blocked[v] = false;
+
+    while (!b[v].empty()) {
+        int W = b[v].front();
+        b[v].pop_front();
+
+        if (blocked[W]) {
+            unblock(W,blocked,b);
+        }
+    }
+}
+
+bool StateMachine::circuit(int v,
+                           const int start, std::vector<int>& stack,
+                           std::vector<bool>& blocked,std::vector<std::list<int>>&b,
+                           std::vector<std::vector<std::string>>& cycles){
+    bool F = false;
+    stack.push_back(v);
+    blocked[v] = true;
+
+    for (int j=0;j<transitions[v].size();j++) {
+        if (!transitions[v][j].empty()){
+            if (j == start) {
+                std::string curStr;
+                for (int & I : stack) {
+                    curStr+= std::to_string(I)+" ";
+                }
+                curStr+= std::to_string(*stack.begin())+" ";
+                cycles[start].push_back(curStr);
+                F = true;
+            } else if (j > start && !blocked[j]) {
+                F = circuit(j,start,stack,blocked,b,cycles);
+            }
+        }
+    }
+
+    if (F) {
+        unblock(v,blocked,b);
+    } else {
+        for (int j=0;j<transitions[v].size();j++) {
+            if (!transitions[v][j].empty()){
+                auto IT = std::find(b[j].begin(), b[j].end(), v);
+                if (IT == b[j].end()) {
+                    b[j].push_back(v);
+                }
+            }
+        }
+    }
+
+    stack.pop_back();
+    return F;
+}
+
+bool StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
+    std::vector<int> stack;
+    std::vector<bool> blocked (transitions.size());
+    std::vector<std::list<int>> b (transitions.size());
+    int start = 0;
+
+    while (start < transitions.size()) {
+        for (int i = start; i < transitions.size(); i++) {
+            blocked[i] = false;
+        }
+        circuit(start,start,stack,blocked,b,cycles);
+        start++;
+    }
 }
 
 void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed, StateMachine& automata) {
