@@ -47,12 +47,13 @@ int parseFlags(int argc, char *argv[], InputData& data) {
 
 
 int main(int argc, char *argv[]){
-    if (argc !=9) {
-        showUsage(argv[0]);
-        return 1;
-    }
-    InputData data;
-    parseFlags(argc,argv,data);
+    // if (argc !=9) {
+    //     showUsage(argv[0]);
+    //     return 1;
+    // }
+    // InputData data;
+    // parseFlags(argc,argv,data);
+    InputData data{ "abc", 10, 5, 10 };
 
 //    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
 //                                                {"", "a", "b", "a", "",""},

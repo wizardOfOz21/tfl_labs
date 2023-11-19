@@ -1,10 +1,13 @@
 #include <string>
+#include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include "StateMachine.h"
 #include <sstream>
 #include <set>
 #include <list>
+#include <algorithm>
 
 StateMachine::StateMachine(int statesNum){
     std::vector<std::string> v(statesNum+1);
@@ -32,7 +35,7 @@ std::unordered_set<int> StateMachine::GetFinalStates() {
     return finalStates;
 }
 
-std::vector<std::vector<std::string>> StateMachine::GetTransitions() {
+std::vector<std::vector<std::string>> StateMachine::GetTransitions() const {
     return transitions;
 }
 
@@ -185,7 +188,7 @@ bool StateMachine::circuit(int v, char letter,
     return F;
 }
 
-bool StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles){
+void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles){
     std::vector<char> stack;
     std::vector<bool> blocked (transitions.size());
     std::vector<std::list<int>> b (transitions.size());
@@ -206,6 +209,41 @@ bool StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycl
         }
         start++;
     }
+    return;
+}
+
+void StateMachine::FindPathsDfs(int v, int target,
+                   std::vector<bool> visited, std::vector<char>& path,
+                   std::unordered_set<std::string>& dest) {
+    visited[v] = true;
+
+    if (v == target) {
+        dest.insert([](std::vector<char> v) {
+            std::string res = "";
+            for (char c : v) {
+                res += c;
+            }
+            return res;
+        }(path));
+    } else {
+        const std::vector<std::string>& v_trans = transitions[v];
+        for (int i = 0; i < transitions.size(); ++i) {
+            if (v_trans[i] != "" && !visited[i]) {
+                path.push_back(v_trans[i][0]);
+                FindPathsDfs(i, target, visited, path, dest);
+            }
+        }
+    }
+    path.pop_back();
+    visited[v] = false;
+};
+
+std::unordered_set<std::string> StateMachine::FindPaths(int source, int target) {
+    std::vector<bool> visited(GetStateNum() + 1, false);
+    std::unordered_set<std::string> dest;
+    std::vector<char> path;
+    FindPathsDfs(source, target, visited, path, dest);
+    return dest;
 }
 
 void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed, StateMachine& automata) {
