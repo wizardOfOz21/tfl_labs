@@ -1,6 +1,7 @@
 #include <fstream>
 #include "MainAlgorithm.h"
 #include "Constant.h"
+#include <algorithm>
 
 MainAlgorithm::MainAlgorithm(std::string& alphabet,int admissionToRegularity,
               int maxLenOfWord,int maxNumOfItersForSymmetricPump)

@@ -19,6 +19,9 @@ private:
                  const int start, std::vector<int>& stack,
                  std::vector<bool>& blocked,std::vector<std::list<int>>&b,
                  std::vector<std::vector<std::string>>& cycles);
+    void FindPathsDfs(int v, int target,
+                   std::vector<bool> visited, std::vector<char>& path,
+                   std::unordered_set<std::string>& dest);
 public:
     StateMachine(){
         transitions=std::vector<std::vector<std::string>>();
@@ -35,13 +38,14 @@ public:
     void AddFinalState(int);
     [[nodiscard]] int GetStateNum() const;
     std::unordered_set<int> GetFinalStates();
-    std::vector<std::vector<std::string>> GetTransitions();
+    std::vector<std::vector<std::string>> GetTransitions() const;
     bool IsWordBelong(const std::string& word);
     bool IsFinal(int state);
     bool IsAnyCycle();
     void FixStates();
 
     bool FindCycles(std::vector<std::vector<std::string>>& cycles);
+    std::unordered_set<std::string> FindPaths(int source, int target);
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 
