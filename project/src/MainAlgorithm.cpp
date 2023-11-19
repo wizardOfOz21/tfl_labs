@@ -77,10 +77,11 @@ void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT){
         std::cout<<"unreal";
     }
     for (auto pref:prefixLanguage){
-        std::vector<std::vector<std::string>> prefixCycles(pref->GetStateNum()+1);
+        std::vector<std::unordered_set<std::string>> prefixCycles(pref->GetStateNum()+1);
         pref->FindCycles(prefixCycles);
+        int a=0;
         for (auto suff:suffixLanguage){
-            std::vector<std::vector<std::string>> suffixCycles(suff->GetStateNum()+1);
+            std::vector<std::unordered_set<std::string>> suffixCycles(suff->GetStateNum()+1);
             suff->FindCycles(suffixCycles);
         }
     }

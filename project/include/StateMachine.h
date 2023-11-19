@@ -15,10 +15,10 @@ private:
     std::unordered_set<int> finalStates;
 
     bool dfs (int v, std::vector<int>& colors);
-    bool circuit(int v,
-                 const int start, std::vector<int>& stack,
+    bool circuit(int v, char letter,
+                 const int start, std::vector<char>& stack,
                  std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                 std::vector<std::vector<std::string>>& cycles);
+                 std::vector<std::unordered_set<std::string>>& cycles);
 public:
     StateMachine(){
         transitions=std::vector<std::vector<std::string>>();
@@ -41,7 +41,7 @@ public:
     bool IsAnyCycle();
     void FixStates();
 
-    bool FindCycles(std::vector<std::vector<std::string>>& cycles);
+    bool FindCycles(std::vector<std::unordered_set<std::string>>& cycles);
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 
