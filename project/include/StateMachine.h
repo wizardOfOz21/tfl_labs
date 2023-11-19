@@ -44,7 +44,7 @@ public:
     bool IsAnyCycle();
     void FixStates();
 
-    bool FindCycles(std::vector<std::vector<std::string>>& cycles);
+    void FindCycles(std::vector<std::vector<std::string>>& cycles);
     std::unordered_set<std::string> FindPaths(int source, int target);
 
     static void To_Graph(StateMachine& M, std::ostream& out);

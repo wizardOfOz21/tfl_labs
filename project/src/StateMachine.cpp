@@ -183,7 +183,7 @@ bool StateMachine::circuit(int v,
     return F;
 }
 
-bool StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
+void StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
     std::vector<int> stack;
     std::vector<bool> blocked (transitions.size());
     std::vector<std::list<int>> b (transitions.size());
@@ -196,6 +196,7 @@ bool StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
         circuit(start,start,stack,blocked,b,cycles);
         start++;
     }
+    return;
 }
 
 void StateMachine::FindPathsDfs(int v, int target,
