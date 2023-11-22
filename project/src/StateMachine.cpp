@@ -142,76 +142,6 @@ void unblock(int v,std::vector<bool>& blocked,std::vector<std::list<int>>&b){
     }
 }
 
-bool StateMachine::circuit(int v, char letter,
-                           const int start, std::vector<char>& stack,
-                           std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                           std::vector<std::unordered_set<std::string>>& cycles) const {
-    bool F = false;
-    stack.push_back(letter);
-    blocked[v] = true;
-
-    for (int j=0;j<transitions[v].size();j++) {
-        if (!transitions[v][j].empty()){
-            if (j == start) {
-                std::string curStr;
-                for (char & I : stack) {
-                    curStr+= std::string(1,I);
-                }
-//                curStr+= std::string(1,*stack.begin())+" ";
-                cycles[start].insert(curStr);
-                F = true;
-            } else if (j > start && !blocked[j]) {
-                for (char ch : transitions[v][j]){
-                    if (ch==' '){
-                        continue;
-                    }
-                    F = circuit(j,ch,start,stack,blocked,b,cycles);
-                }
-            }
-        }
-    }
-
-    if (F) {
-        unblock(v,blocked,b);
-    } else {
-        for (int j=0;j<transitions[v].size();j++) {
-            if (!transitions[v][j].empty()){
-                auto IT = std::find(b[j].begin(), b[j].end(), v);
-                if (IT == b[j].end()) {
-                    b[j].push_back(v);
-                }
-            }
-        }
-    }
-
-    stack.pop_back();
-    return F;
-}
-
-void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles) const {
-    std::vector<char> stack;
-    std::vector<bool> blocked (transitions.size());
-    std::vector<std::list<int>> b (transitions.size());
-    int start = 0;
-
-    while (start < transitions.size()) {
-        for (int i = start; i < transitions.size(); i++) {
-            blocked[i] = false;
-        }
-        for (char ch : transitions[start][start]){
-            if (ch==' '){
-                continue;
-            }
-            circuit(start,ch,start,stack,blocked,b,cycles);
-        }
-        if (transitions[start][start].empty()){
-            circuit(start,' ',start,stack,blocked,b,cycles);
-        }
-        start++;
-    }
-    return;
-}
-
 // Возвращает все слова, раскрывая альтернативы, которые встречаются в пути
 std::vector<std::string> get_words_by_path(std::vector<std::string>& path) {
     std::vector<std::string> words(1, "");
@@ -259,20 +189,30 @@ void StateMachine::FindPathsDfs(int v, int target, std::vector<bool> visited,
             }
         }
     }
-    if (path.size() > 0) {
-        path.pop_back();
-    }
+    path.pop_back();
     visited[v] = false;
     return;
 };
 
-std::unordered_set<std::string> StateMachine::FindPaths (
+std::unordered_set<std::string> StateMachine::FindPaths(
     int source, const std::unordered_set<int>& targets) const {
     std::unordered_set<std::string> dest;
     std::vector<bool> visited(GetStateNum() + 1, false);
     for (int target : targets) {
+        if (source == target) {
+            visited[source] = false;
+        } else {
+            visited[source] = true;
+        }
         std::vector<std::string> path;
-        FindPathsDfs(source, target, visited, path, dest);
+        const std::vector<std::string>& v_trans = transitions[source];
+        for (int i = 0; i < transitions.size(); ++i) {
+            std::string t_string = v_trans[i];
+            if (!t_string.empty() && !visited[i]) {
+                path.push_back(t_string);
+                FindPathsDfs(i, target, visited, path, dest);
+            }
+        }
     }
     return dest;
 }

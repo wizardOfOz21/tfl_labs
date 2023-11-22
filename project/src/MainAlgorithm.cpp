@@ -103,17 +103,34 @@ using state_cycles = std::unordered_set<path_word>;
 using automata_states_cycles = std::vector<state_cycles>;
 using pump_set = std::unordered_set<Pump, PumpHash>;
 
-bool checkPump(const Pump& pref_pump, const Pump& suff_pump) {
+std::string multiply(const std::string& s, int times) {
+    std::string res = "";
+    for (int i = 0; i < times; ++i) {
+        res += s;
+    }
+    return res;
+}
+
+bool checkPump(const Pump& pref_pump, const Pump& suff_pump ) {
+// const std::shared_ptr<IMAT>& MAT, int addmission) {
+//     std::unordered_set<int> checked;
+//     for (int k1 = 0; k1 < addmission; ++k1) {
+//         std::string pref = pref_pump.w0 + multiply(pref_pump.u1, k1) + pref_pump.w2 + suff_pump.w0;
+//         for (int k2 = 0; k2 < addmission; ++k2) {
+//             std::string word = pref + multiply(suff_pump.u1, k2) + suff_pump.w2;
+//             if (MAT->IsMembership(word)) {   
+//             }
+
+//         } 
+//     }
     return true;
 }
 
 void get_fragments(const StateMachine& M, pump_set& dest) {
     int _size = M.GetStateNum() + 1;
     const std::unordered_set<int>& final = M.GetFinalStates();
-    automata_states_cycles prefixCycles(_size);
-    M.FindCycles(prefixCycles);
     for (int i = 0; i < _size; ++i) {
-        std::unordered_set<path_word>& paths_on_cycle = prefixCycles[i];
+        std::unordered_set<path_word> paths_on_cycle = M.FindPaths(i, {i});
         if (paths_on_cycle.size() != 0) {
             std::unordered_set<path_word> paths_to_cycle =
                 M.FindPaths(0, {i});
@@ -151,7 +168,7 @@ void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT) {
         for (auto suf_pump : suffixes_pumps) {
             if (checkPump(pref_pump, suf_pump)) {
                 std::cout << "Pump: ";
-                std::cout << pref_pump.w0 << " (" << pref_pump.u1 << ") " << pref_pump.w2 << " ";  
+                std::cout << pref_pump.w0 << " (" << pref_pump.u1 << ") " << pref_pump.w2;  
                 std::cout << suf_pump.w0 << " (" << suf_pump.u1 << ") " << suf_pump.w2 << std::endl;  
             }
         }
