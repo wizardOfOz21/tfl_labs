@@ -20,7 +20,7 @@ private:
                  std::vector<bool>& blocked,std::vector<std::list<int>>&b,
                  std::vector<std::unordered_set<std::string>>& cycles);
     void FindPathsDfs(int v, int target,
-                   std::vector<bool> visited, std::vector<char>& path,
+                   std::vector<bool> visited, std::vector<std::string>& path,
                    std::unordered_set<std::string>& dest);
 public:
     StateMachine(){
@@ -45,13 +45,8 @@ public:
     void FixStates();
 
     void FindCycles(std::vector<std::unordered_set<std::string>>& cycles);
-    // Ищет все пути из состояния source в состояние target, не содержащие циклов,
-    // возвращает множество слов вдоль этих путей
-    std::unordered_set<std::string> FindPaths(int source, int target);
+    // Возвращает все слова вдоль путей из v в какое-либо состояние из targets
     std::unordered_set<std::string> FindPaths(int source, const std::unordered_set<int>& targets);
-    // Восстанавливает слово вдоль пути в автомате
-    // path - путь в формати "q1 q2 q3 q4 q5 ..."
-    std::string GetPathWord(const std::string& path);
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 

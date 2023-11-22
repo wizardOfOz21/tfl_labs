@@ -93,10 +93,8 @@ struct Pump {
 
 using path = std::string;
 using path_word = std::string;
-using state_cycles_paths = std::vector<path>;
-using state_cycles_words = std::unordered_set<path_word>;
-using automata_states_cycles = std::vector<state_cycles_paths>;
-using automata_states_cycles_words = std::vector<state_cycles_words>;
+using state_cycles = std::unordered_set<path_word>;
+using automata_states_cycles = std::vector<state_cycles>;
 
 struct FragmentHash {
     std::hash<std::string> hash_;

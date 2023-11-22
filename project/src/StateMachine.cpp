@@ -212,69 +212,70 @@ void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycl
     return;
 }
 
-std::string StateMachine::GetPathWord(const std::string& path) {
-    if (path == "") return "";
-    std::istringstream path_(path);
-    std::string path_word;
-    int state = 0;
-    std::vector<std::string>* prev_state_trans;
-    path_ >> state;
-    prev_state_trans = &transitions[state];
-
-    while (path_ >> state) {
-        std::string labels = (*prev_state_trans)[state];
-        path_word += (*prev_state_trans)[state];
-        prev_state_trans = &GetTransitions()[state];
-    }
-
-    return path_word;
-};
-
-
-void StateMachine::FindPathsDfs(int v, int target,
-                   std::vector<bool> visited, std::vector<char>& path,
-                   std::unordered_set<std::string>& dest) {
-    visited[v] = true;
-
-    if (v == target) {
-        dest.insert([](std::vector<char> v) {
-            std::string res = "";
-            for (char c : v) {
-                res += c;
+// Возвращает все слова, раскрывая альтернативы, которые встречаются в пути
+std::vector<std::string> get_words_by_path(std::vector<std::string>& path) {
+    std::vector<std::string> words(1, "");
+    for (int i = 0; i < path.size(); ++i) {
+        const std::string& t_string = path[i];
+        if (t_string.length() == 1) {
+            for (std::string& word : words) {
+                word += t_string;
             }
-            return res;
-        }(path));
+        } else {
+            std::stringstream trans_stream(t_string);
+            std::vector<char> trans_labels;
+            char label = 0;
+            while (trans_stream >> label) {
+                trans_labels.push_back(label);
+            }
+            int original_size = words.size();
+            for (int j = 0; j < original_size; ++j) {
+                for (int k = 1; k < trans_labels.size(); ++k) {
+                    words.push_back(words[j] + trans_labels[k]);
+                }
+                words[j] += trans_labels[0];
+            }
+        }
+    }
+    return words;
+}
+
+void StateMachine::FindPathsDfs(int v, int target, std::vector<bool> visited,
+                                std::vector<std::string>& path,
+                                std::unordered_set<std::string>& dest) {
+    visited[v] = true;
+    if (v == target) {
+        std::vector<std::string> words = get_words_by_path(path);
+        for (std::string& word : words) {
+            dest.insert(word);
+        }
     } else {
         const std::vector<std::string>& v_trans = transitions[v];
         for (int i = 0; i < transitions.size(); ++i) {
-            if (v_trans[i] != "" && !visited[i]) {
-                path.push_back(v_trans[i][0]);
+            std::string t_string = v_trans[i];
+            if (!t_string.empty() && !visited[i]) {
+                path.push_back(t_string);
                 FindPathsDfs(i, target, visited, path, dest);
             }
         }
     }
-    path.pop_back();
+    if (path.size() > 0) {
+        path.pop_back();
+    }
     visited[v] = false;
+    return;
 };
 
-std::unordered_set<std::string> StateMachine::FindPaths(int source, int target) {
-    std::vector<bool> visited(GetStateNum() + 1, false);
-    std::unordered_set<std::string> dest;
-    std::vector<char> path;
-    FindPathsDfs(source, target, visited, path, dest);
-    return dest;
-}
-
-std::unordered_set<std::string> StateMachine::FindPaths(int source, const std::unordered_set<int>& targets) {
+std::unordered_set<std::string> StateMachine::FindPaths(
+    int source, const std::unordered_set<int>& targets) {
     std::unordered_set<std::string> dest;
     std::vector<bool> visited(GetStateNum() + 1, false);
     for (int target : targets) {
-        std::vector<char> path;
+        std::vector<std::string> path;
         FindPathsDfs(source, target, visited, path, dest);
     }
     return dest;
 }
-
 
 void dfs (int v, std::unordered_set<int>& globalUsed, std::vector<char>& curUsed, StateMachine& automata) {
     curUsed[v] = true;
