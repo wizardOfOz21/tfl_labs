@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
                                                    {"", "", "", "", "a","c"},
                                                    {"", "", "", "", "",""},
                                                    {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStatesPrefixes{1,2,3,4,5};
+    std::unordered_set<int> finalStatesPrefixes{0,1,2,3,4,5};
     StateMachine automataPrefixes(prefixes, finalStatesPrefixes, 5);
 
     // (c|a)a(a|b)*

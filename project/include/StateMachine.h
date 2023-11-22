@@ -45,7 +45,13 @@ public:
     void FixStates();
 
     void FindCycles(std::vector<std::vector<std::string>>& cycles);
+    // Ищет все пути из состояния source в состояние target, не содержащие циклов,
+    // возвращает множество слов вдоль этих путей
     std::unordered_set<std::string> FindPaths(int source, int target);
+    std::unordered_set<std::string> FindPaths(int source, const std::unordered_set<int>& targets);
+    // Восстанавливает слово вдоль пути в автомате
+    // path - путь в формати "q1 q2 q3 q4 q5 ..."
+    std::string GetPathWord(const std::string& path);
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 
