@@ -142,26 +142,31 @@ void unblock(int v,std::vector<bool>& blocked,std::vector<std::list<int>>&b){
     }
 }
 
-bool StateMachine::circuit(int v,
-                           const int start, std::vector<int>& stack,
+bool StateMachine::circuit(int v, char letter,
+                           const int start, std::vector<char>& stack,
                            std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                           std::vector<std::vector<std::string>>& cycles){
+                           std::vector<std::unordered_set<std::string>>& cycles){
     bool F = false;
-    stack.push_back(v);
+    stack.push_back(letter);
     blocked[v] = true;
 
     for (int j=0;j<transitions[v].size();j++) {
         if (!transitions[v][j].empty()){
             if (j == start) {
                 std::string curStr;
-                for (int & I : stack) {
-                    curStr+= std::to_string(I)+" ";
+                for (char & I : stack) {
+                    curStr+= std::string(1,I);
                 }
-                curStr+= std::to_string(*stack.begin())+" ";
-                cycles[start].push_back(curStr);
+//                curStr+= std::string(1,*stack.begin())+" ";
+                cycles[start].insert(curStr);
                 F = true;
             } else if (j > start && !blocked[j]) {
-                F = circuit(j,start,stack,blocked,b,cycles);
+                for (char ch : transitions[v][j]){
+                    if (ch==' '){
+                        continue;
+                    }
+                    F = circuit(j,ch,start,stack,blocked,b,cycles);
+                }
             }
         }
     }
@@ -183,8 +188,8 @@ bool StateMachine::circuit(int v,
     return F;
 }
 
-void StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
-    std::vector<int> stack;
+void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles){
+    std::vector<char> stack;
     std::vector<bool> blocked (transitions.size());
     std::vector<std::list<int>> b (transitions.size());
     int start = 0;
@@ -193,7 +198,15 @@ void StateMachine::FindCycles(std::vector<std::vector<std::string>>& cycles){
         for (int i = start; i < transitions.size(); i++) {
             blocked[i] = false;
         }
-        circuit(start,start,stack,blocked,b,cycles);
+        for (char ch : transitions[start][start]){
+            if (ch==' '){
+                continue;
+            }
+            circuit(start,ch,start,stack,blocked,b,cycles);
+        }
+        if (transitions[start][start].empty()){
+            circuit(start,' ',start,stack,blocked,b,cycles);
+        }
         start++;
     }
     return;

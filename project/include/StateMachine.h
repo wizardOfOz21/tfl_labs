@@ -15,10 +15,10 @@ private:
     std::unordered_set<int> finalStates;
 
     bool dfs (int v, std::vector<int>& colors);
-    bool circuit(int v,
-                 const int start, std::vector<int>& stack,
+    bool circuit(int v, char letter,
+                 const int start, std::vector<char>& stack,
                  std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                 std::vector<std::vector<std::string>>& cycles);
+                 std::vector<std::unordered_set<std::string>>& cycles);
     void FindPathsDfs(int v, int target,
                    std::vector<bool> visited, std::vector<char>& path,
                    std::unordered_set<std::string>& dest);
@@ -44,7 +44,7 @@ public:
     bool IsAnyCycle();
     void FixStates();
 
-    void FindCycles(std::vector<std::vector<std::string>>& cycles);
+    void FindCycles(std::vector<std::unordered_set<std::string>>& cycles);
     // Ищет все пути из состояния source в состояние target, не содержащие циклов,
     // возвращает множество слов вдоль этих путей
     std::unordered_set<std::string> FindPaths(int source, int target);

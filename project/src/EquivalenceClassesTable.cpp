@@ -105,10 +105,9 @@ bool EquivalenceClassesTable::MakeConsistent(const std::string& mode){
                 if (mainTable[word1]==mainTable[word2]){
 //                    std::cout<<word1<<"\t"<<word2<<std::endl;
                     for (int i=0;i<mainTable[word1].size();i++){
-                        int v=rand()%alphabet.length();
                         int p=rand()%suffixes.size();
                         if (mainTable[word1][i]!=elem2.second[i] || mainTable[word1][i]!=elem1.second[i]){
-                            suffixes.push_back(alphabet[v]+suffixes[p]);
+                            suffixes.push_back(elem1.first[elem1.first.size()-1]+suffixes[p]);
                             FillMainTable(mode);
                             FillAdditionalTable(mode);
                             updateClassesOfEquivalence();
