@@ -80,28 +80,55 @@ void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT,
     return;
 }
 
-struct Fragment {
+struct Pump {
     std::string w0;
     std::string u1;
     std::string w2;
 };
 
-struct Pump {
-    Fragment prefix;
-    Fragment suffix;
+struct PumpHash {
+    std::hash<std::string> hash_;
+    size_t operator()(const Pump& pump) const {
+        return hash_(pump.w0 + pump.u1 + pump.w2);
+    }
 };
+
+bool operator==(const Pump& a, const Pump& b) {
+    return (a.u1 == b.u1) && (a.w0 == b.w0) && (a.w2 == b.w2);
+}
 
 using path = std::string;
 using path_word = std::string;
 using state_cycles = std::unordered_set<path_word>;
 using automata_states_cycles = std::vector<state_cycles>;
+using pump_set = std::unordered_set<Pump, PumpHash>;
 
-struct FragmentHash {
-    std::hash<std::string> hash_;
-    size_t operator()(const Fragment& fragment) const {
-        return hash_(fragment.w0 + fragment.u1 + fragment.w2);
+bool checkPump(const Pump& pref_pump, const Pump& suff_pump) {
+    return true;
+}
+
+void get_fragments(const StateMachine& M, pump_set& dest) {
+    int _size = M.GetStateNum() + 1;
+    const std::unordered_set<int>& final = M.GetFinalStates();
+    automata_states_cycles prefixCycles(_size);
+    M.FindCycles(prefixCycles);
+    for (int i = 0; i < _size; ++i) {
+        std::unordered_set<path_word>& paths_on_cycle = prefixCycles[i];
+        if (paths_on_cycle.size() != 0) {
+            std::unordered_set<path_word> paths_to_cycle =
+                M.FindPaths(0, {i});
+            std::unordered_set<path_word> paths_from_cycle =
+                M.FindPaths(i, final);
+            for (const path_word& to : paths_to_cycle) {
+                for (const path_word& on : paths_on_cycle) {
+                    for (const path_word& from : paths_from_cycle) {
+                        dest.emplace(to, on, from);
+                    }
+                }
+            }
+        }
     }
-};
+}
 
 void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT) {
     fillLanguage(MAT, PREFIX_MODE);
@@ -110,28 +137,24 @@ void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT) {
         std::cout << "unreal" << std::endl;
     }
 
-    int prefix_count = prefixLanguage.size();
-    int suffix_count = suffixLanguage.size();
+    pump_set prefixes_pumps;
+    pump_set suffixes_pumps;
 
-    std::vector<std::unordered_set<Fragment, FragmentHash>> prefixes_fragments(prefix_count);
-    std::vector<std::unordered_set<Fragment, FragmentHash>> suffixes_fragments(suffix_count);
+    for (auto pref : prefixLanguage) {
+        get_fragments(*pref, prefixes_pumps);
+    }
+    for (auto suf : suffixLanguage) {
+        get_fragments(*suf, suffixes_pumps);
+    }
 
-    for (auto pref: prefixLanguage) {
-        int pref_size = pref->GetStateNum()+1;
-        const std::unordered_set<int>& final = pref->GetFinalStates();
-        automata_states_cycles prefixCycles(pref_size);
-        pref->FindCycles(prefixCycles);
-        for (int i = 0; i < pref_size; ++i) {
-            std::unordered_set<path_word> paths_to_cycle = pref->FindPaths(0, i);
-            std::unordered_set<path_word> paths_on_cycle;
-            for (path p : prefixCycles[i]) {
-                paths_on_cycle.insert(pref->GetPathWord(p));
+    for (auto pref_pump : prefixes_pumps) {
+        for (auto suf_pump : suffixes_pumps) {
+            if (checkPump(pref_pump, suf_pump)) {
+                std::cout << "Pump: ";
+                std::cout << pref_pump.w0 << " (" << pref_pump.u1 << ") " << pref_pump.w2 << " ";  
+                std::cout << suf_pump.w0 << " (" << suf_pump.u1 << ") " << suf_pump.w2 << std::endl;  
             }
-            std::unordered_set<path_word> paths_from_cycle = pref->FindPaths(i, final);
         }
     }
-    // for (auto suff:suffixLanguage){
-    //     std::vector<std::vector<std::string>>
-    //     suffixCycles(suff->GetStateNum()+1); suff->FindCycles(suffixCycles);
-    // }
+
 }

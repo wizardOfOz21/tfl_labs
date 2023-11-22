@@ -18,10 +18,10 @@ private:
     bool circuit(int v, char letter,
                  const int start, std::vector<char>& stack,
                  std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                 std::vector<std::unordered_set<std::string>>& cycles);
+                 std::vector<std::unordered_set<std::string>>& cycles) const;
     void FindPathsDfs(int v, int target,
                    std::vector<bool> visited, std::vector<std::string>& path,
-                   std::unordered_set<std::string>& dest);
+                   std::unordered_set<std::string>& dest) const;
 public:
     StateMachine(){
         transitions=std::vector<std::vector<std::string>>();
@@ -37,16 +37,16 @@ public:
     void SetFinalStates(std::unordered_set<int> final);
     void AddFinalState(int);
     [[nodiscard]] int GetStateNum() const;
-    std::unordered_set<int> GetFinalStates();
+    std::unordered_set<int> GetFinalStates() const;
     std::vector<std::vector<std::string>> GetTransitions() const;
     bool IsWordBelong(const std::string& word);
     bool IsFinal(int state);
     bool IsAnyCycle();
     void FixStates();
 
-    void FindCycles(std::vector<std::unordered_set<std::string>>& cycles);
+    void FindCycles(std::vector<std::unordered_set<std::string>>& cycles) const;
     // Возвращает все слова вдоль путей из v в какое-либо состояние из targets
-    std::unordered_set<std::string> FindPaths(int source, const std::unordered_set<int>& targets);
+    std::unordered_set<std::string> FindPaths(int source, const std::unordered_set<int>& targets) const;
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 

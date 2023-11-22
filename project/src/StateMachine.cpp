@@ -31,7 +31,7 @@ int StateMachine::GetStateNum() const{
     return stateCount;
 }
 
-std::unordered_set<int> StateMachine::GetFinalStates() {
+std::unordered_set<int> StateMachine::GetFinalStates() const {
     return finalStates;
 }
 
@@ -145,7 +145,7 @@ void unblock(int v,std::vector<bool>& blocked,std::vector<std::list<int>>&b){
 bool StateMachine::circuit(int v, char letter,
                            const int start, std::vector<char>& stack,
                            std::vector<bool>& blocked,std::vector<std::list<int>>&b,
-                           std::vector<std::unordered_set<std::string>>& cycles){
+                           std::vector<std::unordered_set<std::string>>& cycles) const {
     bool F = false;
     stack.push_back(letter);
     blocked[v] = true;
@@ -188,7 +188,7 @@ bool StateMachine::circuit(int v, char letter,
     return F;
 }
 
-void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles){
+void StateMachine::FindCycles(std::vector<std::unordered_set<std::string>>& cycles) const {
     std::vector<char> stack;
     std::vector<bool> blocked (transitions.size());
     std::vector<std::list<int>> b (transitions.size());
@@ -242,7 +242,7 @@ std::vector<std::string> get_words_by_path(std::vector<std::string>& path) {
 
 void StateMachine::FindPathsDfs(int v, int target, std::vector<bool> visited,
                                 std::vector<std::string>& path,
-                                std::unordered_set<std::string>& dest) {
+                                std::unordered_set<std::string>& dest) const {
     visited[v] = true;
     if (v == target) {
         std::vector<std::string> words = get_words_by_path(path);
@@ -266,8 +266,8 @@ void StateMachine::FindPathsDfs(int v, int target, std::vector<bool> visited,
     return;
 };
 
-std::unordered_set<std::string> StateMachine::FindPaths(
-    int source, const std::unordered_set<int>& targets) {
+std::unordered_set<std::string> StateMachine::FindPaths (
+    int source, const std::unordered_set<int>& targets) const {
     std::unordered_set<std::string> dest;
     std::vector<bool> visited(GetStateNum() + 1, false);
     for (int target : targets) {
