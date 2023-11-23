@@ -45,6 +45,15 @@ int parseFlags(int argc, char *argv[], InputData& data) {
     return 0;
 }
 
+StateMachine makePrefixLang(StateMachine& m){
+    std::unordered_set<int> finalStatesPrefixes;
+    for (int i=0;i<=m.GetStateNum();i++){
+        finalStatesPrefixes.insert(i);
+    }
+    auto trans = m.GetTransitions();
+    return {trans,finalStatesPrefixes,m.GetStateNum()};
+}
+
 
 int main(int argc, char *argv[]){
     // if (argc !=9) {
@@ -55,24 +64,19 @@ int main(int argc, char *argv[]){
     // parseFlags(argc,argv,data);
     InputData data{ "abc", 10, 5, 10 };
 
-//    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
-//                                                {"", "a", "b", "a", "",""},
-//                                                {"", "a", "b", "a", "",""},
-//                                                {"", "", "", "", "a","b"},
-//                                                {"", "", "", "", "",""},
-//                                                {"", "", "", "", "",""}};
-//    std::unordered_set<int> finalStates1{4, 5};
-//    StateMachine automata1(vect1, finalStates1, 5);
+    // (a|b)*a(c|a)
+    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
+                                                {"", "a", "b", "a", "",""},
+                                                {"", "a", "b", "a", "",""},
+                                                {"", "", "", "", "a","c"},
+                                                {"", "", "", "", "",""},
+                                                {"", "", "", "", "",""}};
+    std::unordered_set<int> finalStates1{4, 5};
+    StateMachine lang(vect1, finalStates1, 5);
+
 
     //(a|b)*a(c|a)
-    std::vector<std::vector<std::string>> prefixes{{"", "a", "b", "a", "",""},
-                                                   {"", "a", "b", "a", "",""},
-                                                   {"", "a", "b", "a", "",""},
-                                                   {"", "", "", "", "a","c"},
-                                                   {"", "", "", "", "",""},
-                                                   {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStatesPrefixes{0,1,2,3,4,5};
-    StateMachine automataPrefixes(prefixes, finalStatesPrefixes, 5);
+    StateMachine automataPrefixes = makePrefixLang(lang);
 
     // (c|a)a(a|b)*
     std::vector<std::vector<std::string>> suffixes{{"", "c", "a", "", "",""},
@@ -81,11 +85,12 @@ int main(int argc, char *argv[]){
                                                    {"", "", "", "", "a","b"},
                                                    {"", "", "", "", "a","b"},
                                                    {"", "", "", "", "a","b"}};
-    std::unordered_set<int> finalStatesSuffixes{1,2,3,4,5};
-    StateMachine automataSuffixes(suffixes, finalStatesSuffixes, 5);
+    std::unordered_set<int> finalStatesSuffixes;
+    for (int i=0;i<=lang.GetStateNum();i++){
+        finalStatesSuffixes.insert(i);
+    }
+    StateMachine automataSuffixes(suffixes, finalStatesSuffixes, lang.GetStateNum());
 
-    std::ofstream out("res");
-    StateMachine::To_Graph(automataPrefixes,out);
     MATMock m(automataPrefixes, automataSuffixes);
 
     MainAlgorithm main(data.alhabet,data.admissionToRegularity,

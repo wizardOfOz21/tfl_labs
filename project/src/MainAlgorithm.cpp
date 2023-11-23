@@ -139,7 +139,7 @@ void get_fragments(const StateMachine& M, pump_set& dest) {
             for (const path_word& to : paths_to_cycle) {
                 for (const path_word& on : paths_on_cycle) {
                     for (const path_word& from : paths_from_cycle) {
-                        dest.emplace(to, on, from);
+                        dest.insert({to, on, from});
                     }
                 }
             }
