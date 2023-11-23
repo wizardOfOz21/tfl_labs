@@ -8,12 +8,6 @@ generate:
 build-project:
 	cd ./build && cmake .. && make --no-print-directory
 
-test-member:
-	./build/test/membership_test
-
-test-equal:
-	./build/test/equal_test
-
 run:
 	./build/lab3 -a abc -ra 10 -ml 5 -pi 10
 
