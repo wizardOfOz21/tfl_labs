@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "MainAlgorithm.h"
+#include "parser/parser2.hpp"
 
 struct InputData{
     std::string alhabet;
@@ -45,6 +46,17 @@ int parseFlags(int argc, char *argv[], InputData& data) {
     return 0;
 }
 
+StateMachine convertToStateMachine(const std::string& inputRegex) {
+    Parser r(inputRegex.data(), inputRegex.length());
+    node_ptr R = r.Parse();
+    if (!R) {
+        throw std::string{"Parse error"};
+    }
+    StateMachine M = R->to_machine_dfs();
+    M.FixStates();
+    return M;
+}
+
 StateMachine makePrefixLang(StateMachine& m){
     std::unordered_set<int> finalStatesPrefixes;
     for (int i=0;i<=m.GetStateNum();i++){
@@ -52,6 +64,15 @@ StateMachine makePrefixLang(StateMachine& m){
     }
     auto trans = m.GetTransitions();
     return {trans,finalStatesPrefixes,m.GetStateNum()};
+}
+
+StateMachine makeSuffixLang(StateMachine& lang,std::string &suffixLangRegex){
+    std::unordered_set<int> finalStatesSuffixes;
+    for (int i=0;i<=lang.GetStateNum();i++){
+        finalStatesSuffixes.insert(i);
+    }
+    auto trans = convertToStateMachine(suffixLangRegex).GetTransitions();;
+    return {trans,finalStatesSuffixes, lang.GetStateNum()};
 }
 
 
@@ -64,32 +85,12 @@ int main(int argc, char *argv[]){
     // parseFlags(argc,argv,data);
     InputData data{ "abc", 10, 5, 10 };
 
-    // (a|b)*a(c|a)
-    std::vector<std::vector<std::string>> vect1{{"", "a", "b", "a", "",""},
-                                                {"", "a", "b", "a", "",""},
-                                                {"", "a", "b", "a", "",""},
-                                                {"", "", "", "", "a","c"},
-                                                {"", "", "", "", "",""},
-                                                {"", "", "", "", "",""}};
-    std::unordered_set<int> finalStates1{4, 5};
-    StateMachine lang(vect1, finalStates1, 5);
+    std::string mainLangRegex="^(a|b)*a(c|a)$";
+    std::string suffixLangRegex="^(c|a)a(a|b)*$";
 
-
-    //(a|b)*a(c|a)
+    StateMachine lang = convertToStateMachine(mainLangRegex);
     StateMachine automataPrefixes = makePrefixLang(lang);
-
-    // (c|a)a(a|b)*
-    std::vector<std::vector<std::string>> suffixes{{"", "c", "a", "", "",""},
-                                                   {"", "", "", "a", "",""},
-                                                   {"", "", "", "a", "",""},
-                                                   {"", "", "", "", "a","b"},
-                                                   {"", "", "", "", "a","b"},
-                                                   {"", "", "", "", "a","b"}};
-    std::unordered_set<int> finalStatesSuffixes;
-    for (int i=0;i<=lang.GetStateNum();i++){
-        finalStatesSuffixes.insert(i);
-    }
-    StateMachine automataSuffixes(suffixes, finalStatesSuffixes, lang.GetStateNum());
+    StateMachine automataSuffixes = makeSuffixLang(lang,suffixLangRegex);
 
     MATMock m(automataPrefixes, automataSuffixes);
 

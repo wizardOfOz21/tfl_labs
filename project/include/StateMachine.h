@@ -29,7 +29,7 @@ public:
     StateMachine(std::vector<std::vector<std::string>>& transitions1,std::unordered_set<int>& finalStates1,
                  int statesCount1);
 
-    void AddTransition(int curState, char curSignal, int nextState);
+    void AddTransition(int curState, const std::string& curSignal, int nextState);
     void SetFinalStates(std::unordered_set<int> final);
     void AddFinalState(int);
     [[nodiscard]] int GetStateNum() const;
@@ -46,4 +46,9 @@ public:
     static void To_Graph(StateMachine& M, std::ostream& out);
 
     ~StateMachine()=default;
+
+    // Функции нужные для парсера из лабы 2
+    static StateMachine ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2);
+    static StateMachine IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2);
+    static StateMachine UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2);
 };

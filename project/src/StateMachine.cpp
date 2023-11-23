@@ -39,7 +39,7 @@ std::vector<std::vector<std::string>> StateMachine::GetTransitions() const {
     return transitions;
 }
 
-void StateMachine::AddTransition(int curState, char curSignal, int nextState){
+void StateMachine::AddTransition(int curState, const std::string& curSignal, int nextState){
     transitions[curState][nextState]=curSignal;
 }
 
@@ -254,4 +254,166 @@ void StateMachine::FixStates(){
             }
         }
     }
+}
+
+// Функции нужные для парсера из лабы 2
+
+StateMachine StateMachine::ConcatStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
+    if ((stM1.stateCount==0 && stM1.finalStates.empty()) || (stM2.stateCount==0 && stM2.finalStates.empty())) {
+        return {};
+    }
+    if (stM1.stateCount==0 && !stM1.finalStates.empty()) {
+        return stM2;
+    }
+    if (stM2.stateCount==0 && !stM2.finalStates.empty()) {
+        return stM1;
+    }
+    StateMachine res(stM1.GetStateNum()+stM2.GetStateNum());
+    for (int i=0;i<stM1.transitions.size();i++){
+        for (int j=0;j<stM1.transitions[i].size();j++){
+            if (stM1.transitions[i][j]!=""){
+                res.AddTransition(i,stM1.transitions[i][j],j);
+            }
+        }
+    }
+    for (auto finalState:stM1.finalStates){
+        for (int j=0;j<stM2.transitions[0].size();j++){
+            if (stM2.transitions[0][j]!=""){
+                res.AddTransition(finalState,stM2.transitions[0][j],j+stM1.GetStateNum());
+            }
+        }
+    }
+    for (int i=1;i<stM2.transitions.size();i++){
+        for (int j=0;j<stM2.transitions[i].size();j++){
+            if (stM2.transitions[i][j]!=""){
+                res.AddTransition(i+stM1.GetStateNum(),stM2.transitions[i][j],j+stM1.GetStateNum());
+            }
+        }
+    }
+    std::unordered_set<int> newFinalStates;
+    for (auto finalState:stM2.finalStates){
+        if (finalState==0 ) {
+            for (auto finalState1:stM1.finalStates) {
+                newFinalStates.insert(finalState1);
+            }
+        }
+        newFinalStates.insert(finalState+stM1.GetStateNum());
+    }
+    res.SetFinalStates(newFinalStates);
+    return res;
+}
+
+StateMachine StateMachine::IntersectStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
+    if ((stM1.stateCount==0 && stM1.finalStates.empty()) || (stM2.stateCount==0 && stM2.finalStates.empty())) {
+        return {};
+    }
+    std::unordered_map<int,std::pair<int,int>> Q;
+    std::queue<int> que;
+    StateMachine res(stM1.GetStateNum()*stM2.GetStateNum());
+    std::unordered_set<int> newFinalStates;
+    Q[0]=std::make_pair(0,0);
+    que.push(0);
+    int stateCount=0;
+    auto it1 = stM1.finalStates.find(0);
+    auto it2 = stM2.finalStates.find(0);
+    if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()) {
+        newFinalStates.insert(stateCount);
+    }
+    while (!que.empty()){
+        auto curStateCount=que.front();
+        auto curState=Q[que.front()];
+        que.pop();
+        for (int i=0;i<stM1.transitions[curState.first].size();i++){
+            std::string curTransStM1=stM1.transitions[curState.first][i];
+            if (curTransStM1=="."){
+                for (int j=0;j<stM2.transitions[curState.second].size();j++){
+                    std::string curTransStM2=stM2.transitions[curState.second][j];
+                    if (curTransStM2!=""){
+                        bool f= false;
+                        for (auto state : Q) {
+                            if (state.second.first==i && state.second.second==j){
+                                res.AddTransition(curStateCount,curTransStM2,state.first);
+                                f= true;
+                                break;
+                            }
+                        }
+                        if (f){
+                            continue;
+                        }
+                        stateCount++;
+                        Q[stateCount]=std::make_pair(i,j);
+                        auto it1 = stM1.finalStates.find(i);
+                        auto it2 = stM2.finalStates.find(j);
+                        if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()){
+                            newFinalStates.insert(stateCount);
+                        }
+                        que.push(stateCount);
+                        res.AddTransition(curStateCount,curTransStM2,stateCount);
+                    }
+                }
+            } else if (curTransStM1!=""){
+                for (int j=0;j<stM2.transitions[curState.second].size();j++){
+                    auto curTransStM2=stM2.transitions[curState.second][j];
+                    if (curTransStM2==curTransStM1 || curTransStM2 == "."){
+                        bool f= false;
+                        for (auto state : Q) {
+                            if (state.second.first==i && state.second.second==j){
+                                res.AddTransition(curStateCount,curTransStM1,state.first);
+                                f= true;
+                                break;
+                            }
+                        }
+                        if (f){
+                            continue;
+                        }
+                        stateCount++;
+                        Q[stateCount]=std::make_pair(i,j);
+                        auto it1 = stM1.finalStates.find(i);
+                        auto it2 = stM2.finalStates.find(j);
+                        if (it1 != stM1.finalStates.end() && it2!=stM2.finalStates.end()){
+                            newFinalStates.insert(stateCount);
+                        }
+                        que.push(stateCount);
+                        res.AddTransition(curStateCount,curTransStM1,stateCount);
+                    }
+                }
+            }
+        }
+    }
+    res.SetFinalStates(newFinalStates);
+//    // Удаление лишнего
+    res.FixStates();
+    return res;
+}
+
+StateMachine StateMachine::UnionStateMachines(const StateMachine& stM1, const StateMachine& stM2) {
+    StateMachine res(stM1.GetStateNum()+stM2.GetStateNum());
+    for (int i=0;i<stM1.transitions.size();i++){
+        for (int j=0;j<stM1.transitions[i].size();j++){
+            if (stM1.transitions[i][j]!=""){
+                res.AddTransition(i,stM1.transitions[i][j],j);
+            }
+        }
+    }
+    for (int i=0;i<stM2.transitions.size();i++){
+        for (int j=0;j<stM2.transitions[i].size();j++){
+            if (stM2.transitions[i][j]!=""){
+                if (i==0){
+                    res.AddTransition(i,stM2.transitions[i][j],j+stM1.GetStateNum());
+                } else {
+                    res.AddTransition(i+stM1.GetStateNum(),stM2.transitions[i][j],j+stM1.GetStateNum());
+                }
+            }
+        }
+    }
+    std::unordered_set<int> newFinalStates;
+    for (auto finalState:stM1.finalStates){
+        newFinalStates.insert(finalState);
+    }
+    for (auto finalState:stM2.finalStates){
+        if (finalState==0) newFinalStates.insert(finalState);
+        newFinalStates.insert(finalState+stM1.GetStateNum());
+    }
+    res.SetFinalStates(newFinalStates);
+    return res;
 }
