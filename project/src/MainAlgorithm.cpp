@@ -130,7 +130,7 @@ void get_fragments(const StateMachine& M, pump_set& dest) {
     int _size = M.GetStateNum() + 1;
     const std::unordered_set<int>& final = M.GetFinalStates();
     for (int i = 0; i < _size; ++i) {
-        std::unordered_set<path_word> paths_on_cycle = M.FindPaths(i, {i});
+        std::unordered_set<path_word> paths_on_cycle = M.FindCycles(i);
         if (paths_on_cycle.size() != 0) {
             std::unordered_set<path_word> paths_to_cycle =
                 M.FindPaths(0, {i});

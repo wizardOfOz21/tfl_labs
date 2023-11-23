@@ -194,16 +194,32 @@ void StateMachine::FindPathsDfs(int v, int target, std::vector<bool> visited,
     return;
 };
 
+std::unordered_set<std::string> StateMachine::FindCycles(int vertex) const {
+    std::unordered_set<std::string> dest;
+    std::vector<bool> visited(GetStateNum() + 1, false);
+    std::vector<std::string> path;
+    const std::vector<std::string>& v_trans = transitions[vertex];
+    for (int i = 0; i < transitions.size(); ++i) {
+        std::string t_string = v_trans[i];
+        if (!t_string.empty() && !visited[i]) {
+            path.push_back(t_string);
+            FindPathsDfs(i, vertex, visited, path, dest);
+        }
+    }
+    return dest;
+}
+
+
 std::unordered_set<std::string> StateMachine::FindPaths(
     int source, const std::unordered_set<int>& targets) const {
     std::unordered_set<std::string> dest;
     std::vector<bool> visited(GetStateNum() + 1, false);
     for (int target : targets) {
         if (source == target) {
-            visited[source] = false;
-        } else {
-            visited[source] = true;
+            dest.insert("");
+            continue;
         }
+        visited[source] = true;
         std::vector<std::string> path;
         const std::vector<std::string>& v_trans = transitions[source];
         for (int i = 0; i < transitions.size(); ++i) {
@@ -213,6 +229,7 @@ std::unordered_set<std::string> StateMachine::FindPaths(
                 FindPathsDfs(i, target, visited, path, dest);
             }
         }
+        visited[source] = false;
     }
     return dest;
 }

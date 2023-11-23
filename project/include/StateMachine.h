@@ -42,6 +42,7 @@ public:
 
     // Возвращает все слова вдоль путей из v в какое-либо состояние из targets
     std::unordered_set<std::string> FindPaths(int source, const std::unordered_set<int>& targets) const;
+    std::unordered_set<std::string> FindCycles(int vertex) const;
 
     static void To_Graph(StateMachine& M, std::ostream& out);
 
