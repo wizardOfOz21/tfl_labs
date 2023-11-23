@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
     StateMachine automataPrefixes = makePrefixLang(lang);
     StateMachine automataSuffixes = makeSuffixLang(lang,suffixLangRegex);
 
-    MATMock m(automataPrefixes, automataSuffixes);
+    MATMock m(lang, automataPrefixes, automataSuffixes);
 
     MainAlgorithm main(data.alhabet,data.admissionToRegularity,
                        data.maxLenOfWord,data.maxNumOfItersForPump);

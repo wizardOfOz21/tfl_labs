@@ -2,13 +2,16 @@
 #include <sstream>
 #include "Constant.h"
 
-MATMock::MATMock(StateMachine& pref,StateMachine& suff): pref(pref),suff(suff){}
+MATMock::MATMock(StateMachine& lang,StateMachine& pref,StateMachine& suff): lang(lang),pref(pref),suff(suff){}
 
 bool MATMock::IsMembership(const std::string& word,const std::string& mode){
     if (mode==PREFIX_MODE){
         return pref.IsWordBelong(word);
     }
-   return suff.IsWordBelong(word);
+    if (mode==SUFFIX_MODE){
+        return suff.IsWordBelong(word);
+    }
+    return lang.IsWordBelong(word);
 }
 
 std::string arrToStr(std::vector<std::string>& permutation){
