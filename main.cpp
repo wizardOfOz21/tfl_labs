@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
     // }
     // InputData data;
     // parseFlags(argc,argv,data);
-    InputData data{ "abc", 10, 5, 10 };
+    InputData data{ "abc", 100, 6, 100 };
 
     std::string mainLangRegex="^(a|b)*a(c|a)$";
     std::string suffixLangRegex="^(c|a)a(a|b)*$";

@@ -111,18 +111,41 @@ std::string multiply(const std::string& s, int times) {
     return res;
 }
 
-bool checkPump(const Pump& pref_pump, const Pump& suff_pump ) {
-// const std::shared_ptr<IMAT>& MAT, int addmission) {
-//     std::unordered_set<int> checked;
-//     for (int k1 = 0; k1 < addmission; ++k1) {
-//         std::string pref = pref_pump.w0 + multiply(pref_pump.u1, k1) + pref_pump.w2 + suff_pump.w0;
-//         for (int k2 = 0; k2 < addmission; ++k2) {
-//             std::string word = pref + multiply(suff_pump.u1, k2) + suff_pump.w2;
-//             if (MAT->IsMembership(word)) {   
-//             }
-
-//         } 
-//     }
+bool checkPump(const Pump& pref_pump, const Pump& suff_pump,
+const std::shared_ptr<IMAT>& MAT, int addmission) {
+    std::unordered_set<int> checked;
+    for (int k1 = 0; k1 < addmission; ++k1) {
+        bool is_good = false;
+        std::string pref = pref_pump.w0 + multiply(pref_pump.u1, k1) + pref_pump.w2 + suff_pump.w0;
+        for (int k2 = 0; k2 < addmission; ++k2) {
+            std::string word = pref + multiply(suff_pump.u1, k2) + suff_pump.w2;
+            if (MAT->IsMembership(word, BASE_MODE)) {
+                checked.insert(k2);
+                is_good = true;
+                break;
+            }
+        }
+        if (!is_good) {
+            return false;
+        }
+    }
+    for (int k2 = 0; k2 < addmission; ++k2) {
+        if (checked.find(k2) != checked.end()) {
+            continue;
+        }
+        bool is_good = false;
+        std::string suff = pref_pump.w2 + suff_pump.w0 + multiply(suff_pump.u1, k2) + suff_pump.w2;;
+        for (int k1 = 0; k1 < addmission; ++k1) {
+            std::string word = pref_pump.w0 + multiply(pref_pump.u1, k1) + suff;
+            if (MAT->IsMembership(word, BASE_MODE)) {
+                is_good = true;
+                break;
+            }
+        }
+        if (!is_good) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -166,12 +189,14 @@ void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT) {
 
     for (auto pref_pump : prefixes_pumps) {
         for (auto suf_pump : suffixes_pumps) {
-            if (checkPump(pref_pump, suf_pump)) {
-                std::cout << "Pump: ";
-                std::cout << pref_pump.w0 << " (" << pref_pump.u1 << ") " << pref_pump.w2;  
-                std::cout << suf_pump.w0 << " (" << suf_pump.u1 << ") " << suf_pump.w2 << std::endl;  
+            if (checkPump(pref_pump, suf_pump, MAT, maxNumOfItersForSymmetricPump)) {
+                
+                std::cout << pref_pump.w0 << "(" << pref_pump.u1 << ")*" << pref_pump.w2;  
+                std::cout << suf_pump.w0 << "(" << suf_pump.u1 << ")*" << suf_pump.w2 << std::endl;  
             }
         }
     }
+
+
 
 }
