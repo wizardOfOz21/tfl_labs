@@ -77,13 +77,13 @@ StateMachine makeSuffixLang(StateMachine& lang,std::string &suffixLangRegex){
 
 
 int main(int argc, char *argv[]){
-    // if (argc !=9) {
-    //     showUsage(argv[0]);
-    //     return 1;
-    // }
-    // InputData data;
-    // parseFlags(argc,argv,data);
-    InputData data{ "abc", 100, 6, 100 };
+     if (argc !=9) {
+         showUsage(argv[0]);
+         return 1;
+     }
+     InputData data;
+     parseFlags(argc,argv,data);
+//    InputData data{ "abc", 100, 6, 100 };
 
     std::string mainLangRegex="^(a|b)*a(c|a)$";
     std::string suffixLangRegex="^(c|a)a(a|b)*$";
