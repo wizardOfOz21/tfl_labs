@@ -7,7 +7,9 @@ file(GLOB INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 include_directories(${INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${SOURCES}
+        src/MATMockPolyndrom.cpp
+        include/MATMockDYCK.h)
 
 set(LAB3_LIBRARIES ${PROJECT_NAME} PARENT_SCOPE)
 set(LAB3_INCLUDE_DIRS ${INCLUDE_DIRS} PARENT_SCOPE)

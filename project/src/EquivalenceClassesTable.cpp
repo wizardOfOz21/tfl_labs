@@ -155,7 +155,7 @@ StateMachine EquivalenceClassesTable::BuildDFA() {
 }
 
 std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
-(std::string& alphabet,int maxNumOfEquivClasses, int maxLenOfWord, std::shared_ptr<IMAT> MAT, const std::string& mode){
+(std::string& alphabet,int maxNumOfEquivClasses, int maxTryCount, std::shared_ptr<IMAT> MAT, const std::string& mode){
     EquivalenceClassesTable equivTable(alphabet,std::move(MAT));
     equivTable.fillRecognitionStringForMainTable("",mode);
     StateMachine DFA;
@@ -177,7 +177,7 @@ std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
         DFA = equivTable.BuildDFA();
         i++;
 
-        auto verdict=equivTable.MAT->IsEqual(DFA,alphabet,maxLenOfWord,mode);
+        auto verdict=equivTable.MAT->IsEqual(DFA,alphabet,maxTryCount,mode);
         if (verdict=="equal"){
             break;
         }

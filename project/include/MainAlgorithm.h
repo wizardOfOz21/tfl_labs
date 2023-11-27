@@ -10,12 +10,12 @@ private:
     std::vector<std::string> suffixLanguageStr;
     std::string alphabet;
     int admissionToRegularity;
-    int maxLenOfWord;
+    int maxTryCount;
     int maxNumOfItersForSymmetricPump;
 
     void fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& mode);
 public:
     MainAlgorithm(std::string& alphabet,int admissionToRegularity,
-                  int maxLenOfWord,int maxNumOfItersForSymmetricPump);
+                  int maxTryCount,int maxNumOfItersForSymmetricPump);
     void Run(const std::shared_ptr<IMAT>& MAT);
 };

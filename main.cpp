@@ -2,11 +2,13 @@
 #include <fstream>
 #include "MainAlgorithm.h"
 #include "parser/parser2.hpp"
+#include "MATMockPolyndrom.h"
+#include "MATMockDYCK.h"
 
 struct InputData{
     std::string alhabet;
     int admissionToRegularity;
-    int maxLenOfWord;
+    int maxTryCount;
     int maxNumOfItersForPump;
 };
 
@@ -15,7 +17,7 @@ static void showUsage(const std::string& name) {
               << "You must spec options in any order:\n"
               << "\t-a,  --alphabet\t\tSpecify the alphabet (string like \"abc\", without repeating letters)\n"
               << "\t-ra, --regadm\t\tSpecify admission to regularity\n"
-              << "\t-ml, --maxlen\t\tSpecify max len of word for equality query to MAT\n"
+              << "\t-mtc, --maxtrycount\t\tSpecify max try count for equality query to MAT\n"
               << "\t-pi, --pumpit\t\tSpecify max num of iters for symmetric pump \n"
               << std::endl;
 }
@@ -31,10 +33,10 @@ int parseFlags(int argc, char *argv[], InputData& data) {
             i++;
             if (i>=argc) return -1;
             data.admissionToRegularity=std::stoi(argv[i]);
-        } else if (arg=="--maxlen" || arg=="-ml") {
+        } else if (arg=="--maxtrycount" || arg=="-mtc") {
             i++;
             if (i>=argc) return -1;
-            data.maxLenOfWord=std::stoi(argv[i]);
+            data.maxTryCount=std::stoi(argv[i]);
         } else if (arg=="--pumpit" || arg=="-pi") {
             i++;
             if (i>=argc) return -1;
@@ -83,19 +85,25 @@ int main(int argc, char *argv[]){
      }
      InputData data;
      parseFlags(argc,argv,data);
-//    InputData data{ "abc", 100, 6, 100 };
 
-    std::string mainLangRegex="^(a|b)*a(c|a)$";
-    std::string suffixLangRegex="^(c|a)a(a|b)*$";
+    // regular mock
+//    std::string mainLangRegex="^(aa)*a(bb)*(c|a)$";
+//    std::string suffixLangRegex="^((aa)*a?a(bb)*(c|a)|c|a|(bb)*b?(c|a))$";
+//
+//    StateMachine lang = convertToStateMachine(mainLangRegex);
+//    StateMachine automataPrefixes = makePrefixLang(lang);
+//    StateMachine automataSuffixes = makeSuffixLang(lang,suffixLangRegex);
+//
+//    MATMock m(lang, automataPrefixes, automataSuffixes);
 
-    StateMachine lang = convertToStateMachine(mainLangRegex);
-    StateMachine automataPrefixes = makePrefixLang(lang);
-    StateMachine automataSuffixes = makeSuffixLang(lang,suffixLangRegex);
+    // poly language
+    // MATMockPolyndrom m;
 
-    MATMock m(lang, automataPrefixes, automataSuffixes);
+    // DYCK lang
+    MATMockDYCK m(data.alhabet);
 
     MainAlgorithm main(data.alhabet,data.admissionToRegularity,
-                       data.maxLenOfWord,data.maxNumOfItersForPump);
-    main.Run(std::make_unique<MATMock>(m));
+                       data.maxTryCount,data.maxNumOfItersForPump);
+    main.Run(std::make_unique<MATMockDYCK>(m));
     return 0;
 }

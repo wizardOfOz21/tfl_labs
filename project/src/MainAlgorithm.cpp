@@ -8,11 +8,11 @@
 #include "Constant.h"
 
 MainAlgorithm::MainAlgorithm(std::string& alphabet, int admissionToRegularity,
-                             int maxLenOfWord,
+                             int maxTryCount,
                              int maxNumOfItersForSymmetricPump)
     : alphabet(alphabet),
       admissionToRegularity(admissionToRegularity),
-      maxLenOfWord(maxLenOfWord),
+      maxTryCount(maxTryCount),
       maxNumOfItersForSymmetricPump(maxNumOfItersForSymmetricPump) {}
 
 void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT,
@@ -54,7 +54,7 @@ void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT,
             std::unique_ptr<StateMachine> automata =
                 EquivalenceClassesTable::LStar(
                     curStr, maxStateCount[i - 1] + admissionToRegularity,
-                    maxLenOfWord, MAT, mode);
+                    maxTryCount, MAT, mode);
             if (automata != nullptr) {
                 automata->FixStates();
                 if (automata->IsAnyCycle()) {
