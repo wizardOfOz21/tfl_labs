@@ -72,16 +72,16 @@ StateMachine makePrefixLang(StateMachine& m){
 }
 
 int main(int argc, char *argv[]){
-    //  if (argc !=9) {
-    //      showUsage(argv[0]);
-    //      return 1;
-    //  }
-     InputData data{"abc", 10, 1000, 100};
-    //  parseFlags(argc,argv,data);
+     if (argc !=9) {
+         showUsage(argv[0]);
+         return 1;
+     }
+     InputData data;
+     parseFlags(argc,argv,data);
 
     // Regular language
-    // std::string langRegex = "^(a|b)*a(c|a)$";
-    // std::string reverseRegex  = "^(c|a)a(a|b)*$";
+    // std::string langRegex = "^(aa)*a(bb)*(c|a)$";
+    // std::string reverseRegex  = "^(c|a)(bb)*a(aa)*$";
 
     // StateMachine lang;
     // StateMachine reverse;
@@ -95,8 +95,7 @@ int main(int argc, char *argv[]){
     // } catch (const parse_error& e) {
     //     std::cout << "parse error" << std::endl;
     //     return 0;
-    // }
-    
+    // }    
     // MATMockRegex m(lang, automataPrefixes, automataSuffixes);
 
     // Palindrome language
