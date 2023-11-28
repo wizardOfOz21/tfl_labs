@@ -1,6 +1,5 @@
 #pragma once
 #include "EquivalenceClassesTable.h"
-#include "MATMock.h"
 
 class MainAlgorithm{
 private:

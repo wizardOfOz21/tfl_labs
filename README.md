@@ -44,4 +44,3 @@ $ make build-project
 ```
 $ make run >> file.txt 
 ```
-
