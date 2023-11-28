@@ -107,6 +107,6 @@ int main(int argc, char *argv[]){
 
     MainAlgorithm main(data.alhabet,data.admissionToRegularity,
                        data.maxTryCount,data.maxNumOfItersForPump);
-    main.Run(std::make_unique<MATMockDYCK>(m));
+    main.Run(m);
     return 0;
 }

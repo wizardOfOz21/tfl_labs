@@ -3,8 +3,8 @@
 #include <utility>
 #include "Constant.h"
 
-EquivalenceClassesTable::EquivalenceClassesTable(std::string& alphabet,std::shared_ptr<IMAT> MAT)
-:alphabet(alphabet),MAT(std::move(MAT)){
+EquivalenceClassesTable::EquivalenceClassesTable(std::string& alphabet, IMAT& MAT)
+:alphabet(alphabet),MAT(MAT){
     mainTable[""]="";
     suffixes.emplace_back("");
 }
@@ -22,7 +22,7 @@ void EquivalenceClassesTable::fillRecognitionStringForAdditionalTable(const std:
     int alreadyFilled = additionalTable[curPrefix].length();
     for (int i=alreadyFilled;i<suffixes.size();i++){
         std::string curWord = curPrefix+suffixes[i];
-        if (MAT->IsMembership(curWord,mode)){
+        if (MAT.IsMembership(curWord,mode)){
             additionalTable[curPrefix]+="+";
         }else {
             additionalTable[curPrefix]+="-";
@@ -34,7 +34,7 @@ void EquivalenceClassesTable::fillRecognitionStringForMainTable(const std::strin
     int alreadyFilled = mainTable[curPrefix].length();
     for (int i=alreadyFilled;i<suffixes.size();i++){
         std::string curWord = curPrefix+suffixes[i];
-        if (MAT->IsMembership(curWord,mode)){
+        if (MAT.IsMembership(curWord,mode)){
             mainTable[curPrefix]+="+";
         }else {
             mainTable[curPrefix]+="-";
@@ -155,8 +155,8 @@ StateMachine EquivalenceClassesTable::BuildDFA() {
 }
 
 std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
-(std::string& alphabet,int maxNumOfEquivClasses, int maxTryCount, std::shared_ptr<IMAT> MAT, const std::string& mode){
-    EquivalenceClassesTable equivTable(alphabet,std::move(MAT));
+(std::string& alphabet,int maxNumOfEquivClasses, int maxTryCount, IMAT& MAT, const std::string& mode){
+    EquivalenceClassesTable equivTable(alphabet, MAT);
     equivTable.fillRecognitionStringForMainTable("",mode);
     StateMachine DFA;
     int i=0;
@@ -177,7 +177,7 @@ std::unique_ptr<StateMachine> EquivalenceClassesTable::LStar
         DFA = equivTable.BuildDFA();
         i++;
 
-        auto verdict=equivTable.MAT->IsEqual(DFA,alphabet,maxTryCount,mode);
+        auto verdict=equivTable.MAT.IsEqual(DFA,alphabet,maxTryCount,mode);
         if (verdict=="equal"){
             break;
         }
