@@ -9,7 +9,7 @@ build-project:
 	cd ./build && cmake .. && make --no-print-directory
 
 run:
-	./build/lab3 -a abc -ra 10 -ml 5 -pi 10
+	./build/lab3 -a abc -ra 10 -mtc 10000 -pi 100
 
 valgrind-run:
 	valgrind --tool=memcheck make run

@@ -97,7 +97,7 @@ int main(int argc, char *argv[]){
 //    MATMock m(lang, automataPrefixes, automataSuffixes);
 
     // poly language
-    // MATMockPolyndrom m;
+//     MATMockPolyndrom m;
 
     // DYCK lang
     MATMockDYCK m(data.alhabet);
