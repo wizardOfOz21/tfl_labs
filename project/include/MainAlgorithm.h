@@ -1,6 +1,5 @@
 #pragma once
 #include "EquivalenceClassesTable.h"
-#include "MATMock.h"
 
 class MainAlgorithm{
 private:
@@ -13,9 +12,9 @@ private:
     int maxTryCount;
     int maxNumOfItersForSymmetricPump;
 
-    void fillLanguage(std::shared_ptr<IMAT> MAT, const std::string& mode);
+    void fillLanguage(IMAT& MAT, const std::string& mode);
 public:
     MainAlgorithm(std::string& alphabet,int admissionToRegularity,
                   int maxTryCount,int maxNumOfItersForSymmetricPump);
-    void Run(const std::shared_ptr<IMAT>& MAT);
+    void Run(IMAT& MAT);
 };

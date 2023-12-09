@@ -2,8 +2,9 @@
 #include <fstream>
 #include "MainAlgorithm.h"
 #include "parser/parser2.hpp"
-#include "MATMockPolyndrom.h"
+#include "MATMockPalindrome.h"
 #include "MATMockDYCK.h"
+#include "MATMockRegex.h"
 
 struct InputData{
     std::string alhabet;
@@ -48,11 +49,13 @@ int parseFlags(int argc, char *argv[], InputData& data) {
     return 0;
 }
 
+class parse_error: public std::exception {};
+
 StateMachine convertToStateMachine(const std::string& inputRegex) {
     Parser r(inputRegex.data(), inputRegex.length());
     node_ptr R = r.Parse();
     if (!R) {
-        throw std::string{"Parse error"};
+        throw parse_error();
     }
     StateMachine M = R->to_machine_dfs();
     M.FixStates();
@@ -68,16 +71,6 @@ StateMachine makePrefixLang(StateMachine& m){
     return {trans,finalStatesPrefixes,m.GetStateNum()};
 }
 
-StateMachine makeSuffixLang(StateMachine& lang,std::string &suffixLangRegex){
-    std::unordered_set<int> finalStatesSuffixes;
-    for (int i=0;i<=lang.GetStateNum();i++){
-        finalStatesSuffixes.insert(i);
-    }
-    auto trans = convertToStateMachine(suffixLangRegex).GetTransitions();;
-    return {trans,finalStatesSuffixes, lang.GetStateNum()};
-}
-
-
 int main(int argc, char *argv[]){
      if (argc !=9) {
          showUsage(argv[0]);
@@ -86,24 +79,33 @@ int main(int argc, char *argv[]){
      InputData data;
      parseFlags(argc,argv,data);
 
-    // regular mock
-//    std::string mainLangRegex="^(aa)*a(bb)*(c|a)$";
-//    std::string suffixLangRegex="^((aa)*a?a(bb)*(c|a)|c|a|(bb)*b?(c|a))$";
-//
-//    StateMachine lang = convertToStateMachine(mainLangRegex);
-//    StateMachine automataPrefixes = makePrefixLang(lang);
-//    StateMachine automataSuffixes = makeSuffixLang(lang,suffixLangRegex);
-//
-//    MATMock m(lang, automataPrefixes, automataSuffixes);
+    // Regular language
+    // std::string langRegex = "^(aa)*a(bb)*(c|a)$";
+    // std::string reverseRegex  = "^(c|a)(bb)*a(aa)*$";
 
-    // poly language
-//     MATMockPolyndrom m;
+    // StateMachine lang;
+    // StateMachine reverse;
+    // StateMachine automataPrefixes;
+    // StateMachine automataSuffixes;
+    // try {
+    //     lang = convertToStateMachine(langRegex);
+    //     automataPrefixes = makePrefixLang(lang);
+    //     reverse = convertToStateMachine(reverseRegex);
+    //     automataSuffixes = makePrefixLang(reverse);
+    // } catch (const parse_error& e) {
+    //     std::cout << "parse error" << std::endl;
+    //     return 0;
+    // }    
+    // MATMockRegex m(lang, automataPrefixes, automataSuffixes);
 
-    // DYCK lang
+    // Palindrome language
+    // MATMockPalindrome m;
+
+    // DYCK language
     MATMockDYCK m(data.alhabet);
 
     MainAlgorithm main(data.alhabet,data.admissionToRegularity,
                        data.maxTryCount,data.maxNumOfItersForPump);
-    main.Run(std::make_unique<MATMockDYCK>(m));
+    main.Run(m);
     return 0;
 }

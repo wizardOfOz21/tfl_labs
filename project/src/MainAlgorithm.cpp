@@ -15,8 +15,7 @@ MainAlgorithm::MainAlgorithm(std::string& alphabet, int admissionToRegularity,
       maxTryCount(maxTryCount),
       maxNumOfItersForSymmetricPump(maxNumOfItersForSymmetricPump) {}
 
-void MainAlgorithm::fillLanguage(std::shared_ptr<IMAT> MAT,
-                                 const std::string& mode) {
+void MainAlgorithm::fillLanguage(IMAT& MAT, const std::string& mode) {
     int N = alphabet.size();
     std::vector<int> maxStateCount(alphabet.size());
     std::unordered_set<std::string> badWords;
@@ -111,15 +110,14 @@ std::string multiply(const std::string& s, int times) {
     return res;
 }
 
-bool checkPump(const Pump& pref_pump, const Pump& suff_pump,
-const std::shared_ptr<IMAT>& MAT, int addmission) {
+bool checkPump(const Pump& pref_pump, const Pump& suff_pump, IMAT& MAT, int addmission) {
     std::unordered_set<int> checked;
     for (int k1 = 0; k1 < addmission; ++k1) {
         bool is_good = false;
         std::string pref = pref_pump.w0 + multiply(pref_pump.u1, k1) + pref_pump.w2 + suff_pump.w0;
         for (int k2 = 0; k2 < addmission; ++k2) {
             std::string word = pref + multiply(suff_pump.u1, k2) + suff_pump.w2;
-            if (MAT->IsMembership(word, BASE_MODE)) {
+            if (MAT.IsMembership(word, BASE_MODE)) {
                 checked.insert(k2);
                 is_good = true;
                 break;
@@ -137,7 +135,7 @@ const std::shared_ptr<IMAT>& MAT, int addmission) {
         std::string suff = pref_pump.w2 + suff_pump.w0 + multiply(suff_pump.u1, k2) + suff_pump.w2;;
         for (int k1 = 0; k1 < addmission; ++k1) {
             std::string word = pref_pump.w0 + multiply(pref_pump.u1, k1) + suff;
-            if (MAT->IsMembership(word, BASE_MODE)) {
+            if (MAT.IsMembership(word, BASE_MODE)) {
                 is_good = true;
                 break;
             }
@@ -170,7 +168,7 @@ void get_fragments(const StateMachine& M, pump_set& dest) {
     }
 }
 
-void MainAlgorithm::Run(const std::shared_ptr<IMAT>& MAT) {
+void MainAlgorithm::Run(IMAT& MAT) {
     fillLanguage(MAT, PREFIX_MODE);
     fillLanguage(MAT, SUFFIX_MODE);
     if (prefixLanguage.empty() || suffixLanguage.empty()) {
