@@ -14,4 +14,10 @@ private:
     void addTerms();
 public:
     explicit Grammar(const std::string& filename);
+
+    std::vector<std::string> Rules();
+    std::unordered_set<std::string> NonTerms();
+    std::unordered_set<std::string> Terms();
+    std::string StartToken();
+
 };

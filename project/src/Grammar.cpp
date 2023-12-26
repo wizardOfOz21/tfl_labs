@@ -47,3 +47,16 @@ void Grammar::addTerms() {
         }
     }
 }
+
+std::vector<std::string> Grammar::Rules() {
+    return rules;
+}
+std::unordered_set<std::string> Grammar::NonTerms() {
+    return nonTerms;
+}
+std::unordered_set<std::string> Grammar::Terms() {
+    return terms;
+}
+std::string Grammar::StartToken() {
+    return startToken;
+}
