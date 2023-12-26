@@ -2,5 +2,6 @@
 #include "SLRTable.h"
 
 int main(){
-    SLRTable(1);
+    Grammar gr ("/home/denis/tfl_labs/grammar.txt");
+    SLRTable t(gr);
 }

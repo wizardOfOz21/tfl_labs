@@ -1,6 +1,12 @@
 #include "SLRTable.h"
+
+#include <utility>
 #include "iostream"
 
-SLRTable::SLRTable(int a){
-    std::cout<<a;
+SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
+
+}
+
+void SLRTable::processGrammar(){
+
 }

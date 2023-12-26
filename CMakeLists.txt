@@ -3,7 +3,7 @@ project(lab5)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_link_options(-coverage)
+add_link_options(-coverage -lgcov)
 
 add_subdirectory(project)
 
