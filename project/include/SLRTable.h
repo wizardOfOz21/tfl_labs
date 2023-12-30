@@ -2,6 +2,8 @@
 #include "string"
 #include "Grammar.h"
 #include "unordered_map"
+#include "map"
+#include <iostream>
 
 class SLRTable{
 private:
@@ -11,6 +13,9 @@ private:
 
         bool operator==(const ExtendedRule& rule) const{
             if (rule.LHS==LHS) {
+                if (rule.RHS.size()!=RHS.size()){
+                    return false;
+                }
                 for (int i=0;i<rule.RHS.size();i++){
                     if (rule.RHS[i]!=RHS[i]){
                         return false;
@@ -37,11 +42,31 @@ private:
         }
     };
 
+    struct Comp{
+        bool operator()(const std::string& lhs, const std::string& rhs) const{
+//            std::cout<<lhs<<" "<<lhs[lhs.size()-1]<<" "<<rhs<<std::endl;
+            if (std::string(1,lhs[lhs.size()-1])=="'"){
+                return true;
+            }
+            if (std::string(1,rhs[rhs.size()-1])=="'"){
+                return false;
+            }
+            if (lhs<rhs){
+                return true;
+            }
+            return false;
+        }
+    };
+
 
     Grammar inputGrammar;
     std::vector<ExtendedRule> extendedGrammarRules;
-    std::unordered_map<int,std::vector<ExtendedRule>> stateDict;
-    std::unordered_map<std::pair<int,std::string>,int, hash_pair> stateDict2;
+    std::map<int,std::vector<ExtendedRule>> stateDict;
+    std::unordered_map<std::pair<int,std::string>,int, hash_pair> GOTOStateDict;
+    std::vector<std::vector<std::string>> table;
+
+    std::map<std::string,std::vector<std::string>,Comp> dict;
+
     std::string newStartToken;
     int stateCount=0;
 
@@ -50,9 +75,13 @@ private:
     void computeGOTO(int state);
     void GOTO(int state,const std::string& token);
     void generateStates();
+    void createParseTable();
+    std::vector<std::string> follow(const std::string& nonTerm);
+    std::vector<std::string> first(std::vector<std::string>& rule);
 
     bool isBelong(ExtendedRule rule,std::vector<ExtendedRule> arr);
-    std::vector<int> getKeys(std::unordered_map<int,std::vector<ExtendedRule>>);
+    std::vector<int> getKeys(std::map<int,std::vector<ExtendedRule>>);
+    std::vector<std::string> findCols();
 public:
     explicit SLRTable(Grammar grammar);
     SLRTable()=default;

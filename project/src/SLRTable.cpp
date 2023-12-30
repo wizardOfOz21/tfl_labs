@@ -4,8 +4,12 @@
 #include "iostream"
 #include <sstream>
 #include <algorithm>
+#include <set>
 
 const std::string DOT = ".";
+const std::string EPSILON = "#";
+const std::string NOTHING ="NOTHING";
+const std::string SPEC_TOKEN="@";
 
 
 SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
@@ -16,6 +20,8 @@ SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
     stateDict[0] = I0;
 
     generateStates();
+
+    createParseTable();
 
     int a;
     std::cout<<"here";
@@ -170,9 +176,9 @@ void SLRTable::GOTO(int state,const std::string& token) {
     if (stateExists == -1){
         stateCount++;
         stateDict[stateCount]=newState;
-        stateDict2[std::make_pair(state,token)]=stateCount;
+        GOTOStateDict[std::make_pair(state,token)]=stateCount;
     } else {
-        stateDict2[std::make_pair(state,token)]=stateExists;
+        GOTOStateDict[std::make_pair(state,token)]=stateExists;
     }
 }
 
@@ -191,9 +197,209 @@ void SLRTable::generateStates(){
     }
 }
 
-std::vector<int> SLRTable::getKeys(std::unordered_map<int,std::vector<ExtendedRule>> map) {
+std::vector<std::string> SLRTable::findCols(){
+    std::vector<std::string> rows;
+    for (const auto& term : inputGrammar.Terms()){
+        rows.push_back(term);
+    }
+    rows.push_back(SPEC_TOKEN);
+    for (const auto& nonTerm : inputGrammar.NonTerms()){
+        rows.push_back(nonTerm);
+    }
+
+
+    return rows;
+}
+
+template<typename T>
+std::vector<T> slice(std::vector<T> const &v, int m, int n)
+{
+
+    auto first = v.cbegin() + m;
+    auto last = v.cbegin() + n + 1;
+
+    std::vector<T> vec(first, last);
+    return vec;
+}
+
+std::vector<std::string> strToVect(const std::string& str){
+    std::stringstream ss(str);
+    std::vector<std::string> ans;
+    std::string token;
+
+    while (ss >> token) {
+        ans.push_back(token);
+    }
+    return ans;
+}
+
+std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
+    if (rule[0]!=NOTHING && !rule.empty()) {
+        if (rule[0]==EPSILON) {
+            return {EPSILON};
+        }
+        if (inputGrammar.Terms().find(rule[0])!=inputGrammar.Terms().end()){
+            return {rule[0]};
+        }
+
+        if (dict.find(rule[0])!=dict.end()){
+            std::vector<std::string> res;
+            auto rhs = dict[rule[0]];
+            for (std::string token : rhs){
+                std::vector<std::string> v{token};
+                auto inRes= first(v);
+                for (auto t : inRes){
+                    res.push_back(t);
+                }
+            }
+            if (std::find(res.begin(), res.end(),EPSILON)==res.end()){
+                return res;
+            }
+            res.erase(std::remove(res.begin(), res.end(), EPSILON), res.end());
+            if (res.size()>1){
+                auto sliced =slice(rule,1,rule.size()-1);
+                auto ansNew = first(sliced);
+                if (ansNew[0]!=NOTHING){
+                    res.insert( res.end(), ansNew.begin(), ansNew.end());
+                }
+                return res;
+            }
+            res.push_back(EPSILON);
+            return res;
+        }
+    }
+    return {NOTHING};
+}
+
+std::vector<std::string> setToVect(std::unordered_set<std::string> s ){
+    std::vector<std::string> res;
+    for (auto i : s){
+        res.push_back(i);
+    }
+    return res;
+}
+
+std::vector<std::string> SLRTable::follow(const std::string& nonTerm) {
+    std::unordered_set<std::string> solSet;
+    if (nonTerm==newStartToken){
+        solSet.insert(SPEC_TOKEN);
+    }
+
+    for (auto cur : dict){
+        std::string curNonTerm = cur.first;
+        auto rhs = cur.second;
+        for (std::string subRule : rhs) {
+            auto subRuleVect= strToVect(subRule);
+
+            while (std::find(subRuleVect.begin(), subRuleVect.end(),nonTerm)!=subRuleVect.end()) {
+                auto nonTermInd = std::find(subRuleVect.begin(), subRuleVect.end(),nonTerm);
+                subRuleVect = slice(subRuleVect,nonTermInd-subRuleVect.begin()+1,subRuleVect.size()-1);
+                std::vector<std::string> firstRes;
+                if (!subRuleVect.empty()){
+                    firstRes=first(subRuleVect);
+                    if (std::find(firstRes.begin(), firstRes.end(),EPSILON)!=firstRes.end()){
+                        firstRes.erase(std::remove(firstRes.begin(), firstRes.end(), EPSILON), firstRes.end());
+                        auto ansNew = follow(curNonTerm);
+                        firstRes.insert(firstRes.end(), ansNew.begin(), ansNew.end());
+                    }
+                } else {
+                    if (nonTerm!=curNonTerm){
+                        firstRes = follow(curNonTerm);
+                    }
+                }
+                for (auto t : firstRes) {
+                    solSet.insert(t);
+                }
+            }
+        }
+    }
+    auto v = setToVect(solSet);
+    return v;
+}
+
+void SLRTable::createParseTable() {
+    std::vector<std::string> v(inputGrammar.NonTerms().size()+inputGrammar.Terms().size()+1);
+    table = std::vector<std::vector<std::string>> (stateCount+1,v);
+
+    auto nonTerms= inputGrammar.NonTerms();
+    auto terms= inputGrammar.Terms();
+
+    std::vector<std::string> cols = findCols();
+
+    for (auto entry : GOTOStateDict){
+        int state = entry.first.first;
+        std::string token = entry.first.second;
+        int col = std::find(cols.begin(), cols.end(),token) - cols.begin();
+        if (nonTerms.find(token)!=nonTerms.end() || terms.find(token)!=terms.end()){
+            table[state][col]+= std::to_string(GOTOStateDict[entry.first]);
+        }
+    }
+
+    std::unordered_map<int,ExtendedRule> processed;
+    int c=0;
+    for (ExtendedRule rule : extendedGrammarRules){
+        auto tmpRule=rule;
+        tmpRule.RHS.erase(std::find(tmpRule.RHS.begin(), tmpRule.RHS.end(),DOT));
+        processed[c]=tmpRule;
+        c++;
+    }
+
+    std::string addedRule = extendedGrammarRules[0].LHS + " -> " + extendedGrammarRules[0].RHS[1];
+    auto rules= inputGrammar.Rules();
+    rules.emplace(rules.cbegin(),addedRule);
+    for (auto rule : rules){
+        std::stringstream ss(rule);
+        std::string token;
+        std::string lhs;
+        std::string rhs;
+        std::vector<std::string> multirhs;
+
+        while (ss >> token) {
+            if (lhs.empty()){
+                lhs=token;
+            } else if (token=="->"){
+                continue;
+            } else if (token == "|"){
+                rhs.pop_back();
+                multirhs.push_back(rhs);
+                rhs.clear();
+            } else {
+                rhs+=token+" ";
+            }
+        }
+        rhs.pop_back();
+        multirhs.push_back(rhs);
+        dict[lhs]=multirhs;
+    }
+
+    for (auto state : stateDict){
+       int stateNum=state.first;
+       auto rules = state.second;
+       for (auto rule:rules){
+           if (rule.RHS[rule.RHS.size()-1]==DOT){
+               auto tmpRule = rule;
+               tmpRule.RHS.erase(std::find(tmpRule.RHS.begin(), tmpRule.RHS.end(),DOT));
+               for (auto proc : processed){
+                   if (proc.second==tmpRule){
+                       auto followRes= follow(rule.LHS);
+                       for (auto col : followRes) {
+                           int ind = std::find(cols.begin(), cols.end(),col)-cols.begin();
+                           if (proc.first==0){
+                               table[stateNum][ind]="acc";
+                           } else {
+                               table[stateNum][ind]+="R"+std::to_string(proc.first);
+                           }
+                       }
+                   }
+               }
+           }
+       }
+    }
+}
+
+std::vector<int> SLRTable::getKeys(std::map<int,std::vector<ExtendedRule>> map) {
     std::vector<int> keys;
-    for (auto record :map){
+    for (const auto& record :map){
         keys.push_back(record.first);
     }
     return keys;
