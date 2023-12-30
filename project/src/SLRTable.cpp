@@ -14,8 +14,12 @@ const std::string SPEC_TOKEN="@";
 
 SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
     processGrammar();
+//    for (auto rule : extendedGrammarRules){
+//        std::cout<<rule;
+//    }
 
     std::vector<ExtendedRule> tmp;
+
     auto I0 = findClosure(tmp,newStartToken);
     stateDict[0] = I0;
 
@@ -23,8 +27,29 @@ SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
 
     createParseTable();
 
-    int a;
-    std::cout<<"here";
+    printTable();
+
+}
+
+void SLRTable::printTable(){
+    std::vector<std::string> cols = findCols();
+
+    std::cout.width(5);
+    std::cout<<"\t";
+    for (auto col : cols) {
+        std::cout<<col<<"\t";
+    }
+    std::cout<<std::endl;
+    for (int i=0;i<table.size();i++){
+        for (int j=0;j<table[i].size();j++){
+            if (j==0){
+                std::cout<<i<<"\t"<<table[i][j]<<"\t";
+            } else {
+                std::cout<<table[i][j]<<"\t";
+            }
+        }
+        std::cout<<std::endl;
+    }
 }
 
 void SLRTable::processGrammar(){
@@ -34,10 +59,6 @@ void SLRTable::processGrammar(){
     while (inputGrammar.NonTerms().find(newStartToken)!=inputGrammar.NonTerms().end()){
         newStartToken+=SUFFIX;
     }
-    auto str = ExtendedRule{
-            newStartToken,
-            std::vector<std::string> {DOT,inputGrammar.StartToken()},
-    };
 
     extendedGrammarRules.push_back(ExtendedRule {
         newStartToken,
@@ -49,7 +70,6 @@ void SLRTable::processGrammar(){
         std::string token;
         std::string lhs;
         std::vector<std::string> rhs {DOT};
-        bool wasOr = false;
 
         while (ss >> token) {
             if (lhs.empty()){
@@ -57,18 +77,14 @@ void SLRTable::processGrammar(){
             } else if (token=="->"){
                 continue;
             } else if (token == "|"){
-                wasOr = true;
                 extendedGrammarRules.push_back(ExtendedRule{lhs,rhs});
-
                 rhs.clear();
                 rhs.push_back(DOT);
             } else {
                 rhs.push_back(token);
             }
         }
-        if (wasOr){
-            extendedGrammarRules.push_back(ExtendedRule{lhs,rhs});
-        }
+        extendedGrammarRules.push_back(ExtendedRule{lhs,rhs});
     }
 }
 
@@ -330,8 +346,11 @@ void SLRTable::createParseTable() {
         int state = entry.first.first;
         std::string token = entry.first.second;
         int col = std::find(cols.begin(), cols.end(),token) - cols.begin();
-        if (nonTerms.find(token)!=nonTerms.end() || terms.find(token)!=terms.end()){
+        if (nonTerms.find(token)!=nonTerms.end()){
             table[state][col]+= std::to_string(GOTOStateDict[entry.first]);
+        }
+        if (terms.find(token)!=terms.end()) {
+            table[state][col]+= "S"+std::to_string(GOTOStateDict[entry.first]);
         }
     }
 
