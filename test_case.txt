@@ -1,0 +1,5 @@
+// shift-reduce conflict
+S -> S aa S
+S -> S b S
+S -> b
+S -> aab

@@ -76,7 +76,7 @@ private:
     void GOTO(int state,const std::string& token);
     void generateStates();
     void createParseTable();
-    std::vector<std::string> follow(const std::string& nonTerm);
+    std::vector<std::string> follow(const std::string& nonTerm, std::unordered_set<std::string>& used);
     std::vector<std::string> first(std::vector<std::string>& rule);
     void printTable();
 

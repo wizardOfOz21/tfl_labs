@@ -295,11 +295,12 @@ std::vector<std::string> setToVect(std::unordered_set<std::string> s ){
     return res;
 }
 
-std::vector<std::string> SLRTable::follow(const std::string& nonTerm) {
+std::vector<std::string> SLRTable::follow(const std::string& nonTerm, std::unordered_set<std::string>& used) {
     std::unordered_set<std::string> solSet;
     if (nonTerm==newStartToken){
         solSet.insert(SPEC_TOKEN);
     }
+    used.insert(nonTerm);
 
     for (auto cur : dict){
         std::string curNonTerm = cur.first;
@@ -315,12 +316,12 @@ std::vector<std::string> SLRTable::follow(const std::string& nonTerm) {
                     firstRes=first(subRuleVect);
                     if (std::find(firstRes.begin(), firstRes.end(),EPSILON)!=firstRes.end()){
                         firstRes.erase(std::remove(firstRes.begin(), firstRes.end(), EPSILON), firstRes.end());
-                        auto ansNew = follow(curNonTerm);
+                        auto ansNew = follow(curNonTerm,used);
                         firstRes.insert(firstRes.end(), ansNew.begin(), ansNew.end());
                     }
                 } else {
-                    if (nonTerm!=curNonTerm){
-                        firstRes = follow(curNonTerm);
+                    if (nonTerm!=curNonTerm && used.find(curNonTerm)==used.end()){
+                        firstRes = follow(curNonTerm,used);
                     }
                 }
                 for (auto t : firstRes) {
@@ -388,7 +389,11 @@ void SLRTable::createParseTable() {
         }
         rhs.pop_back();
         multirhs.push_back(rhs);
-        dict[lhs]=multirhs;
+        if (dict.find(lhs)!=dict.end()){
+            dict[lhs].insert(dict[lhs].end(),multirhs.begin(),multirhs.end());
+        } else {
+            dict[lhs]=multirhs;
+        }
     }
 
     for (auto state : stateDict){
@@ -400,7 +405,8 @@ void SLRTable::createParseTable() {
                tmpRule.RHS.erase(std::find(tmpRule.RHS.begin(), tmpRule.RHS.end(),DOT));
                for (auto proc : processed){
                    if (proc.second==tmpRule){
-                       auto followRes= follow(rule.LHS);
+                       std::unordered_set<std::string> used;
+                       auto followRes= follow(rule.LHS,used);
                        for (auto col : followRes) {
                            int ind = std::find(cols.begin(), cols.end(),col)-cols.begin();
                            if (proc.first==0){
