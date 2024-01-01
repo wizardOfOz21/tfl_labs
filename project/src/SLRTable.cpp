@@ -14,9 +14,6 @@ const std::string SPEC_TOKEN="@";
 
 SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
     processGrammar();
-//    for (auto rule : extendedGrammarRules){
-//        std::cout<<rule;
-//    }
 
     std::vector<ExtendedRule> tmp;
 
@@ -31,10 +28,34 @@ SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
 
 }
 
-void SLRTable::printTable(){
-    std::vector<std::string> cols = findCols();
+Actions SLRTable::GetActions(int state, std::string token) {
+    std::unordered_set<std::string> terms = inputGrammar.Terms();
+    if (terms.find(token)==terms.end()){
+        return {};
+    }
 
-    std::cout.width(5);
+    int ind = std::find(cols.begin(), cols.end(),token) - cols.begin();
+    std::string actionsString = table[state][ind];
+
+    std::vector<int> shiftActions;
+    std::vector<ExtendedRule> reduceActions;
+
+    std::stringstream ss(actionsString);
+    std::string action;
+    while (ss >> action) {
+        if (action[0]=='S'){
+            shiftActions.push_back(action[1]- '0');
+        } else if (action[0]=='R'){
+            auto rule = extendedGrammarRules[action[1]-'0'];
+            rule.RHS.erase(rule.RHS.begin());
+            reduceActions.push_back(rule);
+        }
+    }
+
+    return {shiftActions,reduceActions};
+}
+
+void SLRTable::printTable(){
     std::cout<<"\t";
     for (auto col : cols) {
         std::cout<<col<<"\t";
@@ -88,7 +109,7 @@ void SLRTable::processGrammar(){
     }
 }
 
-std::vector<SLRTable::ExtendedRule> SLRTable::findClosure(std::vector<ExtendedRule>& inpState, std::string& tokenAfterDOT) {
+std::vector<ExtendedRule> SLRTable::findClosure(std::vector<ExtendedRule>& inpState, std::string& tokenAfterDOT) {
     std::vector<ExtendedRule> closure;
 
     if (tokenAfterDOT==newStartToken){
@@ -341,7 +362,7 @@ void SLRTable::createParseTable() {
     auto nonTerms= inputGrammar.NonTerms();
     auto terms= inputGrammar.Terms();
 
-    std::vector<std::string> cols = findCols();
+    cols = findCols();
 
     for (auto entry : GOTOStateDict){
         int state = entry.first.first;
@@ -351,7 +372,7 @@ void SLRTable::createParseTable() {
             table[state][col]+= std::to_string(GOTOStateDict[entry.first]);
         }
         if (terms.find(token)!=terms.end()) {
-            table[state][col]+= "S"+std::to_string(GOTOStateDict[entry.first]);
+            table[state][col]+= "S"+std::to_string(GOTOStateDict[entry.first])+" ";
         }
     }
 
@@ -412,7 +433,7 @@ void SLRTable::createParseTable() {
                            if (proc.first==0){
                                table[stateNum][ind]="acc";
                            } else {
-                               table[stateNum][ind]+="R"+std::to_string(proc.first);
+                               table[stateNum][ind]+="R"+std::to_string(proc.first)+" ";
                            }
                        }
                    }

@@ -1,4 +1,4 @@
-S -> S aa S
+S -> S a a S
 S -> S b S
 S -> b
-S -> aab
+S -> a a b

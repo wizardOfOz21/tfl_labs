@@ -5,28 +5,33 @@
 #include "map"
 #include <iostream>
 
-class SLRTable{
-private:
-    struct ExtendedRule {
-        std::string LHS;
-        std::vector<std::string> RHS;
+struct ExtendedRule {
+    std::string LHS;
+    std::vector<std::string> RHS;
 
-        bool operator==(const ExtendedRule& rule) const{
-            if (rule.LHS==LHS) {
-                if (rule.RHS.size()!=RHS.size()){
+    bool operator==(const ExtendedRule& rule) const{
+        if (rule.LHS==LHS) {
+            if (rule.RHS.size()!=RHS.size()){
+                return false;
+            }
+            for (int i=0;i<rule.RHS.size();i++){
+                if (rule.RHS[i]!=RHS[i]){
                     return false;
                 }
-                for (int i=0;i<rule.RHS.size();i++){
-                    if (rule.RHS[i]!=RHS[i]){
-                        return false;
-                    }
-                }
-                return true;
             }
-            return false;
+            return true;
         }
-    };
+        return false;
+    }
+};
 
+struct Actions {
+    std::vector<int> shiftActions;
+    std::vector<ExtendedRule> reduceActions;
+};
+
+class SLRTable{
+private:
     struct hash_pair {
         template <class T1, class T2>
         size_t operator()(const std::pair<T1, T2>& p) const
@@ -64,6 +69,7 @@ private:
     std::map<int,std::vector<ExtendedRule>> stateDict;
     std::unordered_map<std::pair<int,std::string>,int, hash_pair> GOTOStateDict;
     std::vector<std::vector<std::string>> table;
+    std::vector<std::string> cols;
 
     std::map<std::string,std::vector<std::string>,Comp> dict;
 
@@ -85,7 +91,9 @@ private:
     std::vector<std::string> findCols();
 public:
     explicit SLRTable(Grammar grammar);
-    SLRTable()=default;
+    SLRTable()=delete;
+
+    Actions GetActions(int state, std::string token);
 
 
     ~SLRTable()=default;
