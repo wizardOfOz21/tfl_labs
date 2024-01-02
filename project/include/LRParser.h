@@ -14,6 +14,7 @@ void To_Graph_Dfs(gss_node* t, std::ostream& out) {
         out << "\"" << t->to_graph_vertex() << "\""
             << " -> "
             << "\"" << parent->to_graph_vertex() << "\"" << std::endl;
+        To_Graph_Dfs(parent, out);
     }
 };
 
@@ -25,12 +26,23 @@ void To_Graph(forest& f, std::ostream& out) {
     out << "}" << std::endl;
 };
 
+int screenshots = 0;
+
+void make_screen(forest& f) {
+    std::string name = "tmp/forest_" + std::to_string(screenshots++);
+    std::ofstream out(name);
+    To_Graph(f, out);
+    std::string command = "dot -Tpng " + name + " -o " + name + ".png";
+    system(command.c_str());
+}
+
 class LRParser {
    private:
     int pos = -1;
 
    public:
     bool parse(SLRTable& table, std::vector<std::string>& in) {
+        system("mkdir tmp");
         pos = 0;
         forest f;
         f.insert(new gss_node{{}, 0});
@@ -65,6 +77,7 @@ class LRParser {
                             f.insert(node);
                             stack.push_back(node);
                         }
+                        make_screen(f);
                     }
                     ExtendedRule& rule = actions.reduceActions.back();
                     if (shift_number == 0) {
@@ -76,6 +89,7 @@ class LRParser {
                             f.insert(node);
                             stack.push_back(node);
                         }
+                        make_screen(f);
                     }
                 }
                 for (auto shift_state : actions.shiftActions) {
@@ -90,14 +104,7 @@ class LRParser {
                 gss_node* node = gss_node::get_node(parent_vector, shift.first);
                 f.insert(node);
             }
-            {
-                std::string name = "tmp/forest_" + std::to_string(pos);
-                std::ofstream out(name);
-                To_Graph(f, out);
-                std::string command =
-                    "dot -Tpng " + name + " -o " + name + ".png";
-                system(command.c_str());
-            }
+            make_screen(f);
             pos++;
         }
     }
