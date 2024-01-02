@@ -1,63 +1,104 @@
+#include <cassert>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <cassert>
-#include "SLRTable.h"
-#include "GSS.h"
+#include <unordered_map>
 
-template<class T>
-std::string print(const std::vector<T>& p, int start = 0, int end = -1) {
-    if (end == -1) {
-        end = p.size();
+#include "GSS.h"
+#include "SLRTable.h"
+
+using forest = std::unordered_set<gss_node*>;
+
+void To_Graph_Dfs(gss_node* t, std::ostream& out) {
+    for (gss_node* parent : t->parents) {
+        out << "\"" << t->to_graph_vertex() << "\""
+            << " -> "
+            << "\"" << parent->to_graph_vertex() << "\"" << std::endl;
     }
-    assert(start < end);
-    assert(end <= p.size());
-    std::ostringstream res("");
-    res << p[start];
-    for (int i = start+1; i < end; ++i) {
-        res << " " << p[i];
+};
+
+void To_Graph(forest& f, std::ostream& out) {
+    out << "digraph {" << std::endl;
+    for (auto t : f) {
+        To_Graph_Dfs(t, out);
     }
-    return res.str();
-}
+    out << "}" << std::endl;
+};
 
 class LRParser {
-    private:
-        int pos = -1;
+   private:
+    int pos = -1;
 
-    public:
-
+   public:
     bool parse(SLRTable& table, std::vector<std::string>& in) {
         pos = 0;
-        // GSS stack;
-        std::vector<int> stack;
-        stack.push_back(0);
+        forest f;
+        f.insert(new gss_node{{}, 0});
+
         while (true) {
             std::string token = in[pos];
-            auto actions = table.GetActions(stack.back(), token);
-            assert(actions.reduceActions.size() + actions.shiftActions.size() <= 1);
-            if (actions.shiftActions.size() == 1) {
-                std::cout << print(stack) << ";  ";
-                int shift_state = actions.shiftActions[0];
-                stack.push_back(shift_state);
-                ++pos;
-                std::cout << "SHIFT : " << token << ";  ";
-                std::cout << print(in, pos) << std::endl;
-            } else if (actions.reduceActions.size() == 1) {
-                std::cout << print(stack) << ";  ";
-                ExtendedRule rule = actions.reduceActions[0];
-                for (int i = 0; i < rule.RHS.size(); ++i) {
-                    stack.pop_back();
-                }
-                int top = stack.back();
-                stack.push_back(table.GoTo(top, rule.LHS));
-                std::cout << "REDUCE : " << rule.LHS << " -> " << print(rule.RHS) << ";  ";
-                std::cout << print(in, pos) << std::endl;
-            } else if (actions.is_acc) {
-                std::cout << print(stack) << ";  ";
-                std::cout << "ACCESS;";
-                return true;
-            } else {
-                return false;
+            std::vector<gss_node*> stack;
+            for (auto t : f) {
+                stack.push_back(t);
             }
+            std::unordered_map<int, forest> shifts;
+            while (stack.size() != 0) {
+                gss_node* t = stack.back();
+                stack.pop_back();
+
+                auto actions = table.GetActions(t->state, token);
+                int shift_number = actions.shiftActions.size();
+                int reduce_number = actions.reduceActions.size();
+                if (actions.is_acc) {
+                    return true;
+                }
+                if (shift_number == 0 && reduce_number == 0) {
+                    return false;
+                }
+                if (reduce_number != 0) {
+                    for (int i = 0; i < reduce_number - 1; ++i) {
+                        ExtendedRule& rule = actions.reduceActions[i];
+                        forest heads = t->look(rule.RHS.size());
+                        for (auto head : heads) {
+                            gss_node* node =
+                                head->push(table.GoTo(head->state, rule.LHS));
+                            f.insert(node);
+                            stack.push_back(node);
+                        }
+                    }
+                    ExtendedRule& rule = actions.reduceActions.back();
+                    if (shift_number == 0) {
+                        f.extract(t);
+                        forest heads = t->pop(rule.RHS.size());
+                        for (auto head : heads) {
+                            gss_node* node =
+                                head->push(table.GoTo(head->state, rule.LHS));
+                            f.insert(node);
+                            stack.push_back(node);
+                        }
+                    }
+                }
+                for (auto shift_state : actions.shiftActions) {
+                    shifts[shift_state].insert(t);
+                }
+            }
+
+            f = {};
+            for (auto shift : shifts) {
+                auto parent_vector =
+                    std::vector(shift.second.begin(), shift.second.end());
+                gss_node* node = gss_node::get_node(parent_vector, shift.first);
+                f.insert(node);
+            }
+            {
+                std::string name = "tmp/forest_" + std::to_string(pos);
+                std::ofstream out(name);
+                To_Graph(f, out);
+                std::string command =
+                    "dot -Tpng " + name + " -o " + name + ".png";
+                system(command.c_str());
+            }
+            pos++;
         }
     }
 };
