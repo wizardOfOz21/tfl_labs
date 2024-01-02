@@ -72,6 +72,8 @@ class LRParser {
                         ExtendedRule& rule = actions.reduceActions[i];
                         forest heads = t->look(rule.RHS.size());
                         for (auto head : heads) {
+                            int target = table.GoTo(head->state, rule.LHS);
+                            //поискать среди листьев target, если есть, не создавать новый
                             gss_node* node =
                                 head->push(table.GoTo(head->state, rule.LHS));
                             f.insert(node);
@@ -80,17 +82,20 @@ class LRParser {
                         make_screen(f);
                     }
                     ExtendedRule& rule = actions.reduceActions.back();
+                    forest heads;
                     if (shift_number == 0) {
                         f.extract(t);
-                        forest heads = t->pop(rule.RHS.size());
-                        for (auto head : heads) {
-                            gss_node* node =
-                                head->push(table.GoTo(head->state, rule.LHS));
-                            f.insert(node);
-                            stack.push_back(node);
-                        }
-                        make_screen(f);
+                        heads = t->pop(rule.RHS.size());
+                    } else {
+                        heads = t->look(rule.RHS.size());
                     }
+                    for (auto head : heads) {
+                        gss_node* node =
+                            head->push(table.GoTo(head->state, rule.LHS));
+                        f.insert(node);
+                        stack.push_back(node);
+                    }
+                    make_screen(f);
                 }
                 for (auto shift_state : actions.shiftActions) {
                     shifts[shift_state].insert(t);
