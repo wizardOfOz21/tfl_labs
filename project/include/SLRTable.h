@@ -28,6 +28,7 @@ struct ExtendedRule {
 struct Actions {
     std::vector<int> shiftActions;
     std::vector<ExtendedRule> reduceActions;
+    bool is_acc;
 };
 
 class SLRTable{
@@ -84,7 +85,6 @@ private:
     void createParseTable();
     std::vector<std::string> follow(const std::string& nonTerm, std::unordered_set<std::string>& used);
     std::vector<std::string> first(std::vector<std::string>& rule);
-    void printTable();
 
     bool isBelong(ExtendedRule rule,std::vector<ExtendedRule> arr);
     std::vector<int> getKeys(std::map<int,std::vector<ExtendedRule>>);
@@ -92,9 +92,10 @@ private:
 public:
     explicit SLRTable(Grammar grammar);
     SLRTable()=delete;
+    void printTable();
 
+    int GoTo(int state, std::string token);
     Actions GetActions(int state, std::string token);
-
 
     ~SLRTable()=default;
 };

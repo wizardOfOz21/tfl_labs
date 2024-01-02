@@ -30,12 +30,18 @@ SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
 
 Actions SLRTable::GetActions(int state, std::string token) {
     std::unordered_set<std::string> terms = inputGrammar.Terms();
-    if (terms.find(token)==terms.end()){
+    if (terms.find(token) == terms.end() && token != SPEC_TOKEN){
         return {};
     }
 
     int ind = std::find(cols.begin(), cols.end(),token) - cols.begin();
     std::string actionsString = table[state][ind];
+
+    if (actionsString == "acc") {
+        Actions ans;
+        ans.is_acc = true;
+        return ans;
+    }
 
     std::vector<int> shiftActions;
     std::vector<ExtendedRule> reduceActions;
@@ -169,6 +175,15 @@ void SLRTable::computeGOTO(int state){
         }
     }
 }
+
+int SLRTable::GoTo(int state, std::string token) {
+    auto element_iter = GOTOStateDict.find(std::make_pair(state,token));
+    if (element_iter == GOTOStateDict.end()) {
+        return -1;
+    }
+    return element_iter->second;
+};
+
 
 void SLRTable::GOTO(int state,const std::string& token) {
     std::vector<ExtendedRule> newState;
