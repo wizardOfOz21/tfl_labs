@@ -13,6 +13,6 @@ int main(){
     // std::vector<std::string> in = {"a", "a", "b", "b", "a", "a", "b", "@"};
     // std::vector<std::string> in = {"a", "a", "b", "a", "a", "a", "a", "b", "@"};
     // std::vector<std::string> in = {"b", "a", "a", "a", "a", "b", "@"};
-    std::vector<std::string> in = {"b", "b", "b", "b", "b", "b", "a", "a", "b" "@"};
+    std::vector<std::string> in = {"b", "b", "b", "b", "b", "b", "b", "@"};
     parser.parse(t, in);
 }

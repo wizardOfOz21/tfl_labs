@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -9,29 +10,39 @@
 
 using forest = std::unordered_set<gss_node*>;
 
-void To_Graph_Dfs(gss_node* t, std::ostream& out) {
+void To_Graph_Dfs(gss_node* t, std::ostream& out,
+                  std::unordered_set<gss_node*>& visited) {
+    visited.insert(t);
     for (gss_node* parent : t->parents) {
         out << "\"" << t->to_graph_vertex() << "\""
             << " -> "
             << "\"" << parent->to_graph_vertex() << "\"" << std::endl;
-        To_Graph_Dfs(parent, out);
+        if (visited.find(parent) == visited.end()) {
+            To_Graph_Dfs(parent, out, visited);
+        }
     }
 };
 
-void To_Graph(forest& f, std::ostream& out) {
+void To_Graph(forest& f, std::ostream& out, const std::vector<gss_node*>& stack) {
     out << "digraph {" << std::endl;
+    std::unordered_set<gss_node*> visited;
     for (auto t : f) {
-        To_Graph_Dfs(t, out);
+        out << "\"" << t->to_graph_vertex() << "\""
+            << " [fillcolor=" << 
+            (std::find(stack.begin(), stack.end(), t) != stack.end() ? "\"green\"" : "\"gray\"")
+            << " style=\"filled\""
+            << "]" << std::endl;
+        To_Graph_Dfs(t, out, visited);
     }
     out << "}" << std::endl;
 };
 
 int screenshots = 0;
 
-void make_screen(forest& f) {
+void make_screen(forest& f, const std::vector<gss_node*>& stack) {
     std::string name = "tmp/forest_" + std::to_string(screenshots++);
     std::ofstream out(name);
-    To_Graph(f, out);
+    To_Graph(f, out, stack);
     std::string command = "dot -Tpng " + name + " -o " + name + ".png";
     system(command.c_str());
 }
@@ -73,13 +84,14 @@ class LRParser {
                         forest heads = t->look(rule.RHS.size());
                         for (auto head : heads) {
                             int target = table.GoTo(head->state, rule.LHS);
-                            //поискать среди листьев target, если есть, не создавать новый
-                            gss_node* node =
-                                head->push(table.GoTo(head->state, rule.LHS));
+                            // поискать среди листьев target, если есть, не
+                            // создавать новый
+                            //  for (auto )
+                            gss_node* node = head->push(target);
                             f.insert(node);
                             stack.push_back(node);
                         }
-                        make_screen(f);
+                        make_screen(f, stack);
                     }
                     ExtendedRule& rule = actions.reduceActions.back();
                     forest heads;
@@ -95,7 +107,7 @@ class LRParser {
                         f.insert(node);
                         stack.push_back(node);
                     }
-                    make_screen(f);
+                    make_screen(f, stack);
                 }
                 for (auto shift_state : actions.shiftActions) {
                     shifts[shift_state].insert(t);
@@ -109,7 +121,7 @@ class LRParser {
                 gss_node* node = gss_node::get_node(parent_vector, shift.first);
                 f.insert(node);
             }
-            make_screen(f);
+            make_screen(f, stack);
             pos++;
         }
     }
