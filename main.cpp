@@ -4,7 +4,7 @@
 
 int main(){
     // Grammar gr ("/Users/d.okutin/CLionProjects/tfl_labs/grammar.txt");
-    Grammar gr ("../simple_grammar.txt");
+    Grammar gr ("../nformal_grammar.txt");
     SLRTable t(gr);
     t.printTable();
     LRParser parser;

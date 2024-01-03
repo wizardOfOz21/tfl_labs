@@ -360,8 +360,10 @@ std::vector<std::string> SLRTable::follow(const std::string& nonTerm, std::unord
                         firstRes = follow(curNonTerm,used);
                     }
                 }
-                for (auto t : firstRes) {
-                    solSet.insert(t);
+                if (!firstRes.empty() && firstRes[0]!=NOTHING){
+                    for (auto t : firstRes) {
+                        solSet.insert(t);
+                    }
                 }
             }
         }
