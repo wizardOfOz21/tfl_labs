@@ -6,7 +6,7 @@ int main(){
     // Grammar gr ("/Users/d.okutin/CLionProjects/tfl_labs/grammar.txt");
     Grammar gr ("../nformal_grammar.txt");
     SLRTable t(gr);
-    t.printTable();
+//    t.printTable();
     LRParser parser;
     // std::vector<std::string> in = {"id", "*", "id", "+", "id", "@"};
     

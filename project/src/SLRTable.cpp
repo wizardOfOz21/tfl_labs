@@ -64,15 +64,15 @@ Actions SLRTable::GetActions(int state, std::string token) {
 void SLRTable::printTable(){
     std::cout<<"\t";
     for (auto col : cols) {
-        std::cout<<col<<"\t";
+        std::cout<<col<<"\t\t";
     }
     std::cout<<std::endl;
     for (int i=0;i<table.size();i++){
         for (int j=0;j<table[i].size();j++){
             if (j==0){
-                std::cout<<i<<"\t"<<table[i][j]<<"\t";
+                std::cout<<i<<"\t"<<table[i][j]<<"\t\t";
             } else {
-                std::cout<<table[i][j]<<"\t";
+                std::cout<<table[i][j]<<"\t\t";
             }
         }
         std::cout<<std::endl;
@@ -297,12 +297,14 @@ std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
         if (dict.find(rule[0])!=dict.end()){
             std::vector<std::string> res;
             auto rhs = dict[rule[0]];
-            for (std::string token : rhs){
-                std::vector<std::string> v{token};
-                auto inRes= first(v);
-                for (auto t : inRes){
-                    res.push_back(t);
-                }
+            for (std::string subRule : rhs){
+                auto subRuleVect= strToVect(subRule);
+                        auto inRes= first(subRuleVect);
+                        if (!inRes.empty() && inRes[0]!=NOTHING){
+                            for (auto t : inRes){
+                                res.push_back(t);
+                            }
+                        }
             }
             if (std::find(res.begin(), res.end(),EPSILON)==res.end()){
                 return res;
@@ -311,7 +313,7 @@ std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
             if (res.size()>1){
                 auto sliced =slice(rule,1,rule.size()-1);
                 auto ansNew = first(sliced);
-                if (ansNew[0]!=NOTHING){
+                if (!ansNew.empty() && ansNew[0]!=NOTHING){
                     res.insert( res.end(), ansNew.begin(), ansNew.end());
                 }
                 return res;
