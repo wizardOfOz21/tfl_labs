@@ -1,48 +1,42 @@
-#include <vector>
 #include <cassert>
+#include <memory>
 #include <sstream>
 #include <unordered_set>
+#include <vector>
+
+struct gss_node;
+
+using gss_node_sp = std::shared_ptr<gss_node>;
 
 struct gss_node {
-    std::unordered_set<gss_node*> childs;
+    std::unordered_set<gss_node_sp> childs;
     int state;
-    
-    static gss_node* get_node(std::unordered_set<gss_node*>& childs, int state) {
-        return new gss_node{childs, state};
+
+    static gss_node_sp get_node(std::unordered_set<gss_node_sp>& childs,
+                                int state) {
+        return std::make_shared<gss_node>(childs, state);
     }
 
-    static gss_node* get_node(int state) {
-        return new gss_node{{}, state};
+    static gss_node_sp get_node(int state) {
+        auto sp = std::make_shared<gss_node>();
+        sp->state = state;
+        return sp;
     }
 
-    std::string to_graph_vertex() {
-        std::stringstream ss;
-        ss << state << "(" << this << ")"; 
-        return ss.str();
+    static std::unordered_set<gss_node_sp> look(gss_node_sp& target, int n) {
+        std::unordered_set<gss_node_sp> result;
+        look_dfs(target, n, result);
+        return result;
     }
 
-    gss_node* push(int value) {
-        gss_node* node = new gss_node{{this}, value};
-        return node;
-    }
-
-    void push(gss_node* node) {
-        node->childs.insert(this);
-    }
-
-    void look_dfs(int n, std::unordered_set<gss_node*>& result) {
+   private:
+    static void look_dfs(const gss_node_sp& target, int n, std::unordered_set<gss_node_sp>& result) {
         if (n == 0) {
-            result.insert(this);
+            result.insert(target);
             return;
         }
-        for (gss_node* parent : childs) {
-            parent->look_dfs(n-1, result);
+        for (const gss_node_sp& child : target->childs) {
+            look_dfs(child, n - 1, result);
         }
-    }
-
-    std::unordered_set<gss_node*> look(int n) {
-        std::unordered_set<gss_node*> result;
-        this->look_dfs(n, result);
-        return result;
     }
 };

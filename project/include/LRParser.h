@@ -20,10 +20,10 @@ class LRParser {
    private:
     SLRTable& table;
     int pos = 0;
-    std::vector<std::pair<gss_node*, ExtendedRule>> reduce_stack;
-    std::unordered_map<int, std::unordered_set<gss_node*>> shift_map;
-    std::vector<gss_node*> just_created;
-    std::unordered_set<gss_node*> accepted;
+    std::vector<std::pair<gss_node_sp, ExtendedRule>> reduce_stack;
+    std::unordered_map<int, std::unordered_set<gss_node_sp>> shift_map;
+    std::vector<gss_node_sp> just_created;
+    std::unordered_set<gss_node_sp> accepted;
     int screenshots = 0;
 
     void make_screen() {
@@ -38,10 +38,11 @@ class LRParser {
         out << "digraph {" << std::endl;
         out << "rankdir=RL" << std::endl;
         out << "node [shape=box]" << std::endl;
-        std::unordered_map<gss_node*, std::string> tops;
-        std::unordered_set<gss_node*> visited;
-        for (auto reduce : reduce_stack) {
-            gss_node* node = reduce.first;
+        std::unordered_map<gss_node_sp, std::string> tops;
+        std::unordered_set<gss_node_sp> visited;
+        for (int i = 0; i < reduce_stack.size(); ++i) {
+            auto reduce = reduce_stack[i];
+            gss_node_sp node = reduce.first;
             ExtendedRule& rule = reduce.second;
             tops[node] +=
                 "reduce(" + rule.LHS + " -> " + join(rule.RHS, " ") + ")" + "\\n";
@@ -58,7 +59,7 @@ class LRParser {
             tops[node] = "acc";
         }
         for (auto top : tops) {
-            gss_node* node = top.first;
+            gss_node_sp node = top.first;
             std::string& xlabel = top.second;
             out << "\"" << node << "\"" 
                 << "[" 
@@ -71,11 +72,11 @@ class LRParser {
         out << "}" << std::endl;
     }
 
-    void To_Graph_Dfs(gss_node* t, std::ostream& out,
-                      std::unordered_set<gss_node*>& visited) {
+    void To_Graph_Dfs(gss_node_sp& t, std::ostream& out,
+                      std::unordered_set<gss_node_sp>& visited) {
         visited.insert(t);
         out << "\"" << t << "\" [label=\"" << t->state << "\"]" << std::endl;
-        for (gss_node* child : t->childs) {
+        for (gss_node_sp child : t->childs) {
             out << "\"" << t << "\""
                 << " -> "
                 << "\"" << child << "\"" << std::endl;
@@ -94,7 +95,7 @@ class LRParser {
         screenshots = 0;
     }
 
-    void update(gss_node* target, const std::string& token) {
+    void update(gss_node_sp& target, const std::string& token) {
         auto actions = table.GetActions(target->state, token);
         if (actions.is_acc) {
             accepted.insert(target);
@@ -114,7 +115,7 @@ class LRParser {
         system("mkdir tmp");
 
         init();
-        gss_node* bottom = gss_node::get_node(0);
+        gss_node_sp bottom = gss_node::get_node(0);
         update(bottom, in[pos]);
 
         while (true) {
@@ -124,18 +125,19 @@ class LRParser {
                 auto reduce = reduce_stack.back();
                 ExtendedRule& rule = reduce.second;
                 reduce_stack.pop_back();
-                auto base_nodes = reduce.first->look(rule.RHS.size());
-                std::unordered_map<int, std::unordered_set<gss_node*>>
+                auto base_nodes = gss_node::look(reduce.first, rule.RHS.size());
+                std::unordered_map<int, std::unordered_set<gss_node_sp>>
                     goto_partition;
-                for (gss_node* node : base_nodes) {
+                for (gss_node_sp node : base_nodes) {
                     goto_partition[table.GoTo(node->state, rule.LHS)].insert(node);
                 }
 
                 for (auto part : goto_partition) {
                     int s = part.first;
-                    std::unordered_set<gss_node*>& s_part = part.second;
+                    std::unordered_set<gss_node_sp>& s_part = part.second;
                     bool amb_flag = false;
-                    for (auto node : just_created) {
+                    for (int i = 0; i < just_created.size(); ++i) {
+                        auto node = just_created[i];
                         if (s == node->state && s_part == node->childs) {
                             amb_flag = true;
                             break;
@@ -144,7 +146,7 @@ class LRParser {
                     if (amb_flag) {
                         continue;
                     }
-                    gss_node* node = gss_node::get_node(s_part, s);
+                    auto node = gss_node::get_node(s_part, s);
                     just_created.push_back(node);
                     update(node, in[pos]);
                 }
@@ -152,11 +154,11 @@ class LRParser {
             }
             //
             // Shift stage
-            std::unordered_set<gss_node*> next_tops;
+            std::unordered_set<gss_node_sp> next_tops;
             for (auto shift : shift_map) {
                 int shift_state = shift.first;
                 auto shift_nodes = shift.second;
-                gss_node* accum = gss_node::get_node(shift_nodes, shift_state);
+                auto accum = gss_node::get_node(shift_nodes, shift_state);
                 next_tops.insert(accum);
             }
             shift_map = {};
