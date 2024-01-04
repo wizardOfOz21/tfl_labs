@@ -79,7 +79,7 @@ class LRParser {
 
     void To_Graph(std::ostream& out) {
         out << "digraph {" << std::endl;
-        out << "rankdir=LR" << std::endl;
+        out << "rankdir=RL" << std::endl;
         std::unordered_map<gss_node*, std::string> tops;
         std::unordered_set<gss_node*> visited;
         for (auto reduce : reduce_stack) {
@@ -161,18 +161,20 @@ class LRParser {
                 std::unordered_map<int, std::unordered_set<gss_node*>>
                     goto_partition;
                 for (gss_node* node : base_nodes) {
-                    goto_partition[node->state].insert(node);
+                    goto_partition[table.GoTo(node->state, rule.LHS)].insert(node);
                 }
 
                 for (auto part : goto_partition) {
                     int s = part.first;
                     std::unordered_set<gss_node*>& s_part = part.second;
-                    auto it = std::find_if(
-                        just_created.begin(), just_created.end(),
-                        [s, s_part](const gss_node*& node) {
-                            return s == node->state && s_part == node->childs;
-                        });
-                    if (it != just_created.end()) {
+                    bool amb_flag = false;
+                    for (auto node : just_created) {
+                        if (s == node->state && s_part == node->childs) {
+                            amb_flag = true;
+                            break;
+                        }
+                    }
+                    if (amb_flag) {
                         continue;
                     }
                     gss_node* node = gss_node::get_node(s_part, s);
