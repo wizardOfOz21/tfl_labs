@@ -4,15 +4,19 @@
 #include <unordered_set>
 
 struct gss_node {
-    std::vector<gss_node*> parents;
+    std::unordered_set<gss_node*> childs;
     int state;
-    int childs = 0;
+    int parents = 0;
     
-    static gss_node* get_node(std::vector<gss_node*>& parents, int state) {
-        for (auto parent : parents) {
-            parent->childs++;
+    static gss_node* get_node(std::unordered_set<gss_node*>& childs, int state) {
+        for (auto child : childs) {
+            child->parents++;
         }
-        return new gss_node{parents, state};
+        return new gss_node{childs, state};
+    }
+
+    static gss_node* get_node(int state) {
+        return new gss_node{{}, state};
     }
 
     std::string to_graph_vertex() {
@@ -23,13 +27,13 @@ struct gss_node {
 
     gss_node* push(int value) {
         gss_node* node = new gss_node{{this}, value};
-        childs++;
+        parents++;
         return node;
     }
 
     void push(gss_node* node) {
-        node->parents.push_back(this);
-        childs++;
+        node->childs.insert(this);
+        parents++;
     }
 
     void pop_dfs(int n, std::unordered_set<gss_node*>& result) {
@@ -37,8 +41,8 @@ struct gss_node {
             result.insert(this);
             return;
         }
-        std::vector<gss_node*> heads = parents;
-        if (this->childs == 0) {
+        std::unordered_set<gss_node*> heads = childs;
+        if (this->parents == 0) {
             delete this;
             for (gss_node* head : heads) {
                 head->pop_dfs(n-1, result);
@@ -55,13 +59,13 @@ struct gss_node {
             result.insert(this);
             return;
         }
-        for (gss_node* parent : parents) {
+        for (gss_node* parent : childs) {
             parent->pop_dfs(n-1, result);
         }
     }
 
     std::unordered_set<gss_node*> pop(int n) {
-        assert(this->childs == 0); // нельзя удалять не-листья
+        assert(this->parents == 0); // нельзя удалять не-листья
         std::unordered_set<gss_node*> result;
         this->pop_dfs(n, result);
         return result;
@@ -74,8 +78,8 @@ struct gss_node {
     }
 
     ~gss_node() {
-        for(gss_node* parent : parents) {
-            parent->childs--;
+        for(gss_node* parent : childs) {
+            parent->parents--;
         }
     }
 };
