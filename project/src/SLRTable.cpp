@@ -50,7 +50,7 @@ Actions SLRTable::GetActions(int state, std::string token) {
     std::string action;
     while (ss >> action) {
         if (action[0]=='S'){
-            shiftActions.push_back(action[1]- '0');
+            shiftActions.push_back(std::stoi(action.substr(1)));
         } else if (action[0]=='R'){
             auto rule = extendedGrammarRules[action[1]-'0'];
             rule.RHS.erase(rule.RHS.begin());
