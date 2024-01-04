@@ -9,12 +9,16 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
     res += src[src.size() - 1];
     return res;
 }
-    void LRParser::make_screen() {
-        std::string name = "tmp/forest_" + std::to_string(screenshots++);
-        std::ofstream out(name);
-        To_Graph(out);
-        std::string command = "dot -Tpng " + name + " -o " + name + ".png";
-        system(command.c_str());
+
+    void LRParser::next_step() {
+        if (target_step == FULL_TRACE || (target_step >= 0 && step == target_step)) {
+            std::string name = "tmp/step_" + std::to_string(step);
+            std::ofstream out(name);
+            To_Graph(out);
+            std::string command = "dot -Tpng " + name + " -o " + name + ".png";
+            system(command.c_str());
+        }
+        step++;
     }
 
     void LRParser::To_Graph(std::ostream& out) {
@@ -69,13 +73,17 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
         }
     }
 
-    void LRParser::init() {
+    void LRParser::init(int _target_step) {
+        target_step = _target_step;
+        if (target_step == FULL_TRACE || target_step >= 0) {
+            system("mkdir tmp");
+        }
         pos = 0;
         reduce_stack = {};
         shift_map = {};
         just_created = {};
         accepted = {};
-        screenshots = 0;
+        step = 0;
     }
 
     void LRParser::update(gss_node_sp& target, const std::string& token) {
@@ -93,12 +101,11 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
     }
 
     LRParser::LRParser(SLRTable& _table) : table(_table) {}
-    bool LRParser::parse(std::vector<std::string>& in) {
-        system("mkdir tmp");
-
-        init();
+    bool LRParser::parse(std::vector<std::string>& in, int target_step = NO_TRACE) {
+        init(target_step);
         gss_node_sp bottom = gss_node::get_node(0);
         update(bottom, in[pos]);
+        next_step();
 
         while (true) {
             // Reduce stage
@@ -132,7 +139,7 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
                     just_created.push_back(node);
                     update(node, in[pos]);
                 }
-                make_screen();
+                next_step();
             }
             //
             // Shift stage
@@ -148,7 +155,7 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
             for (auto top : next_tops) {
                 update(top, in[pos]);
             }
-            make_screen();
+            next_step();
             //
             // Check stage
             if (accepted.size() != 0) {

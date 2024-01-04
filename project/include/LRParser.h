@@ -4,6 +4,9 @@
 #include "GSS.h"
 #include "SLRTable.h"
 
+const int NO_TRACE = -2;
+const int FULL_TRACE = -1;
+
 class LRParser {
    private:
     SLRTable& table;
@@ -12,16 +15,17 @@ class LRParser {
     std::unordered_map<int, std::unordered_set<gss_node_sp>> shift_map;
     std::vector<gss_node_sp> just_created;
     std::unordered_set<gss_node_sp> accepted;
-    int screenshots = 0;
+    int step = 0;
+    int target_step = 0;
 
-    void make_screen();
+    void next_step();
     void To_Graph(std::ostream& out);
     void To_Graph_Dfs(gss_node_sp& t, std::ostream& out,
                       std::unordered_set<gss_node_sp>& visited);
-    void init();
+    void init(int target_step);
     void update(gss_node_sp& target, const std::string& token);
 
    public:
     LRParser(SLRTable& _table);
-    bool parse(std::vector<std::string>& in);
+    bool parse(std::vector<std::string>& in, int target_step);
 };

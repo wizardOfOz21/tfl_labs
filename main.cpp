@@ -1,21 +1,68 @@
-#include "iostream"
-#include "SLRTable.h"
 #include "LRParser.h"
+#include "SLRTable.h"
+#include "argparse.hpp"
+#include "iostream"
+#include "sstream"
+#include "fstream"
 
-int main(){
-    // Grammar gr ("/Users/d.okutin/CLionProjects/tfl_labs/grammar.txt");
-    // Grammar gr ("../simple_grammar.txt");
-    Grammar gr ("../grammars/ext_nformal_grammar.txt");
+int main(int argc, char* argv[]) {
+    argparse::ArgumentParser program("lab5");
+    program.add_argument("-g", "--grammar")
+        .required()
+        .help("specify the grammar input file.");
+    auto& sentence = program.add_mutually_exclusive_group(true);
+    sentence.add_argument("-i", "--input").help("specify the sentence directly.");
+    sentence.add_argument("-f", "--file").help("specify the sentence input file.");
+
+    auto& screenshot = program.add_mutually_exclusive_group();
+    screenshot.add_argument("-s", "--step").help("specify the screen step.").scan<'i', int>();
+    screenshot.add_argument("-a", "--all").flag().help("enable full parse trace in tmp/ folder.");
+
+    try {
+        program.parse_args(argc, argv);
+    } catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
+
+    std::vector<std::string> in;
+    std::string grammar_src = program.get<std::string>("-g");
+    if (auto fn = program.present("-i")) {
+        std::stringstream ss(*fn);
+        std::string token;
+        while (ss >> token) {
+            in.push_back(token);
+        }
+    } else {
+        std::string input_src = program.get<std::string>("-f");
+        std::fstream fs(input_src);
+        std::string token;
+        while (fs >> token) {
+            in.push_back(token);
+        }
+        fs.close();
+    }
+    in.push_back("@");
+
+    int step = NO_TRACE;
+    if (auto fn = program.present<int>("-s")) {
+        step = *fn;
+    } else  if (program["-a"] == true) {
+         step = FULL_TRACE;
+    }
+
+    // Grammar gr("../grammars/ext_nformal_grammar.txt");
+    Grammar gr(grammar_src);
     SLRTable t(gr);
-    t.printTable();
     LRParser parser(t);
+    parser.parse(in, step);
     // std::vector<std::string> in = {"id", "*", "id", "+", "id", "@"};
-    
+
     // std::vector<std::string> in = {"a", "a", "b", "b", "a", "a", "b", "@"};
-    // std::vector<std::string> in = {"a", "a", "b", "a", "a", "a", "a", "b", "@"};
+    // std::vector<std::string> in = {"a", "a", "b", "a", "a", "a", "a", "b","@"}; 
     // std::vector<std::string> in = {"b", "a", "a", "a", "a", "b", "@"};
     // std::vector<std::string> in = {"b", "b", "b", "b", "b", "b", "b", "@"};
-    std::vector<std::string> in = {"n", "v", "n", "and", "n", "v", "det", "n", "p", "det", "n", "@"};
-   parser.parse(in);
-    // auto actions = t.GetActions(14, "and");
+    // std::vector<std::string> in = {"n",   "v", "n", "and", "n", "v",
+                                //    "det", "n", "p", "det", "n", "@"};
 }
