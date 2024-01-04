@@ -86,21 +86,21 @@ class LRParser {
             gss_node* node = reduce.first;
             ExtendedRule& rule = reduce.second;
             tops[node] +=
-                "reduce(" + rule.LHS + " -> " + join(rule.RHS) + ")" + "\n";
+                "reduce(" + rule.LHS + " -> " + join(rule.RHS, " ") + ")" + "\\n";
         }
         for (auto shift : shift_map) {
             int shift_state = shift.first;
             auto shift_nodes = shift.second;
             for (auto node : shift_nodes) {
                 tops[node] +=
-                    "shift(" + std::to_string(shift_state) + ")" + "\n";
+                    "shift(" + std::to_string(shift_state) + ")" + "\\n";
             }
         }
         for (auto top : tops) {
             gss_node* node = top.first;
-            std::string& xlable = top.second;
+            std::string& xlabel = top.second;
             out << "\"" << node->to_graph_vertex() << "\" "
-                << "[xlable=\"" + xlable + "\"]" << std::endl;
+                << "[xlabel=\"" + xlabel + "\"]" << std::endl;
             To_Graph_Dfs(node, out, visited);
         }
         out << "}" << std::endl;
@@ -180,8 +180,8 @@ class LRParser {
                     gss_node* node = gss_node::get_node(s_part, s);
                     just_created.push_back(node);
                     update(node, in[pos]);
-                    make_screen();
                 }
+                make_screen();
             }
             //
             // Shift stage

@@ -14,7 +14,7 @@ int main(){
     // std::vector<std::string> in = {"a", "a", "b", "a", "a", "a", "a", "b", "@"};
     // std::vector<std::string> in = {"b", "a", "a", "a", "a", "b", "@"};
     // std::vector<std::string> in = {"b", "b", "b", "b", "b", "b", "b", "@"};
-    // std::vector<std::string> in = {"n", "v", "n", "and", "n", "v", "det", "n", "p", "det", "n", "@"};
-    // parser.parse(in);
-    auto actions = t.GetActions(14, "and");
+    std::vector<std::string> in = {"n", "v", "n", "and", "n", "v", "det", "n", "p", "det", "n", "@"};
+   parser.parse(in);
+    // auto actions = t.GetActions(14, "and");
 }
