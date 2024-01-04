@@ -8,47 +8,6 @@
 #include "GSS.h"
 #include "SLRTable.h"
 
-using forest = std::unordered_set<gss_node*>;
-
-void To_Graph_Dfs(gss_node* t, std::ostream& out,
-                  std::unordered_set<gss_node*>& visited) {
-    visited.insert(t);
-    for (gss_node* child : t->childs) {
-        out << "\"" << t->to_graph_vertex() << "\""
-            << " -> "
-            << "\"" << child->to_graph_vertex() << "\"" << std::endl;
-        if (visited.find(child) == visited.end()) {
-            To_Graph_Dfs(child, out, visited);
-        }
-    }
-};
-
-void To_Graph(forest& f, std::ostream& out,
-              const std::vector<gss_node*>& stack) {
-    out << "digraph {" << std::endl;
-    std::unordered_set<gss_node*> visited;
-    for (auto t : f) {
-        out << "\"" << t->to_graph_vertex() << "\""
-            << " [fillcolor="
-            << (std::find(stack.begin(), stack.end(), t) != stack.end()
-                    ? "\"green\""
-                    : "\"gray\"")
-            << " style=\"filled\""
-            << "]" << std::endl;
-        To_Graph_Dfs(t, out, visited);
-    }
-    out << "}" << std::endl;
-};
-
-template <class T>
-bool vec_compare(const std::vector<T>& first, const std::vector<T>& second) {
-    if (first.size() != second.size()) {
-        return false;
-    }
-
-    return std::is_permutation(first.begin(), first.end(), second.begin());
-}
-
 std::string join(std::vector<std::string>& src, std::string delim = "") {
     std::string res;
     for (int i = 0; i < src.size() - 1; ++i) {
@@ -57,7 +16,6 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
     res += src[src.size() - 1];
     return res;
 }
-
 class LRParser {
    private:
     SLRTable& table;
@@ -65,9 +23,8 @@ class LRParser {
     std::vector<std::pair<gss_node*, ExtendedRule>> reduce_stack;
     std::unordered_map<int, std::unordered_set<gss_node*>> shift_map;
     std::vector<gss_node*> just_created;
-    bool is_accepted = false;
+    std::unordered_set<gss_node*> accepted;
     int screenshots = 0;
-    // std::unordered_set<gss_node*> tops;
 
     void make_screen() {
         std::string name = "tmp/forest_" + std::to_string(screenshots++);
@@ -80,6 +37,7 @@ class LRParser {
     void To_Graph(std::ostream& out) {
         out << "digraph {" << std::endl;
         out << "rankdir=RL" << std::endl;
+        out << "node [shape=box]" << std::endl;
         std::unordered_map<gss_node*, std::string> tops;
         std::unordered_set<gss_node*> visited;
         for (auto reduce : reduce_stack) {
@@ -96,11 +54,18 @@ class LRParser {
                     "shift(" + std::to_string(shift_state) + ")" + "\\n";
             }
         }
+        for (auto node : accepted) {
+            tops[node] = "acc";
+        }
         for (auto top : tops) {
             gss_node* node = top.first;
             std::string& xlabel = top.second;
-            out << "\"" << node->to_graph_vertex() << "\" "
-                << "[xlabel=\"" + xlabel + "\"]" << std::endl;
+            out << "\"" << node << "\"" 
+                << "[" 
+                << "xlabel=\"" << xlabel << "\", " 
+                << "shape=ellipse" 
+                <<  "]"
+                << std::endl;
             To_Graph_Dfs(node, out, visited);
         }
         out << "}" << std::endl;
@@ -109,10 +74,11 @@ class LRParser {
     void To_Graph_Dfs(gss_node* t, std::ostream& out,
                       std::unordered_set<gss_node*>& visited) {
         visited.insert(t);
+        out << "\"" << t << "\" [label=\"" << t->state << "\"]" << std::endl;
         for (gss_node* child : t->childs) {
-            out << "\"" << t->to_graph_vertex() << "\""
+            out << "\"" << t << "\""
                 << " -> "
-                << "\"" << child->to_graph_vertex() << "\"" << std::endl;
+                << "\"" << child << "\"" << std::endl;
             if (visited.find(child) == visited.end()) {
                 To_Graph_Dfs(child, out, visited);
             }
@@ -124,14 +90,15 @@ class LRParser {
         reduce_stack = {};
         shift_map = {};
         just_created = {};
-        // tops = {};
-        is_accepted = false;
+        accepted = {};
         screenshots = 0;
     }
 
     void update(gss_node* target, const std::string& token) {
         auto actions = table.GetActions(target->state, token);
-        is_accepted = actions.is_acc;
+        if (actions.is_acc) {
+            accepted.insert(target);
+        }
         for (ExtendedRule& rule : actions.reduceActions) {
             reduce_stack.emplace_back(target, rule);
         }
@@ -200,7 +167,7 @@ class LRParser {
             make_screen();
             //
             // Check stage
-            if (is_accepted) {
+            if (accepted.size() != 0) {
                 return true;
             }
             if (reduce_stack.size() == 0 && shift_map.size() == 0) {
