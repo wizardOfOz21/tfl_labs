@@ -17,6 +17,7 @@ class LRParser {
     std::unordered_set<gss_node_sp> accepted;
     int step = 0;
     int target_step = 0;
+    std::string token;
 
     void next_step();
     void To_Graph(std::ostream& out);

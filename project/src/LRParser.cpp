@@ -24,6 +24,7 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
     void LRParser::To_Graph(std::ostream& out) {
         out << "digraph {" << std::endl;
         out << "rankdir=RL" << std::endl;
+        out << "label=\"token  " << token << " : " << pos << "\"" << std::endl;
         out << "node [shape=box]" << std::endl;
         std::unordered_map<gss_node_sp, std::string> tops;
         std::unordered_set<gss_node_sp> visited;
@@ -103,6 +104,7 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
     LRParser::LRParser(SLRTable& _table) : table(_table) {}
     bool LRParser::parse(std::vector<std::string>& in, int target_step = NO_TRACE) {
         init(target_step);
+        token = in[pos];
         gss_node_sp bottom = gss_node::get_node(0);
         update(bottom, in[pos]);
         next_step();
@@ -152,6 +154,7 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
             }
             shift_map = {};
             pos++;
+            token = in[pos];
             for (auto top : next_tops) {
                 update(top, in[pos]);
             }
