@@ -9,7 +9,7 @@ Grammar::Grammar(const std::string& filename) {
 
     if (in.is_open()) {
         while (std::getline(in, line)) {
-            std::cout <<"DEBUG: "<< line << std::endl;
+//            std::cout <<"DEBUG: "<< line << std::endl;
 
             if (!line.empty() && line[line.size() - 1] == '\r')
                 line.erase(line.size() - 1);

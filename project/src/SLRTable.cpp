@@ -23,9 +23,6 @@ SLRTable::SLRTable(Grammar  grammar):inputGrammar(std::move(grammar)){
     generateStates();
 
     createParseTable();
-
-    printTable();
-
 }
 
 Actions SLRTable::GetActions(int state, std::string token) {
@@ -61,7 +58,7 @@ Actions SLRTable::GetActions(int state, std::string token) {
     return {shiftActions,reduceActions};
 }
 
-void SLRTable::printTable(){
+void SLRTable::PrintTable(){
     std::cout<<"\t";
     for (auto col : cols) {
         std::cout<<col<<"\t\t";

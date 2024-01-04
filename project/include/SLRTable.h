@@ -50,7 +50,6 @@ private:
 
     struct Comp{
         bool operator()(const std::string& lhs, const std::string& rhs) const{
-//            std::cout<<lhs<<" "<<lhs[lhs.size()-1]<<" "<<rhs<<std::endl;
             if (std::string(1,lhs[lhs.size()-1])=="'"){
                 return true;
             }
@@ -92,7 +91,7 @@ private:
 public:
     explicit SLRTable(Grammar grammar);
     SLRTable()=delete;
-    void printTable();
+    void PrintTable();
 
     int GoTo(int state, std::string token);
     Actions GetActions(int state, std::string token);
