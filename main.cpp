@@ -52,17 +52,8 @@ int main(int argc, char* argv[]) {
          step = FULL_TRACE;
     }
 
-    // Grammar gr("../grammars/ext_nformal_grammar.txt");
     Grammar gr(grammar_src);
     SLRTable t(gr);
     LRParser parser(t);
     parser.parse(in, step);
-    // std::vector<std::string> in = {"id", "*", "id", "+", "id", "@"};
-
-    // std::vector<std::string> in = {"a", "a", "b", "b", "a", "a", "b", "@"};
-    // std::vector<std::string> in = {"a", "a", "b", "a", "a", "a", "a", "b","@"}; 
-    // std::vector<std::string> in = {"b", "a", "a", "a", "a", "b", "@"};
-    // std::vector<std::string> in = {"b", "b", "b", "b", "b", "b", "b", "@"};
-    // std::vector<std::string> in = {"n",   "v", "n", "and", "n", "v",
-                                //    "det", "n", "p", "det", "n", "@"};
 }
