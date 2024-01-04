@@ -12,11 +12,11 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
 
     void LRParser::next_step() {
         if (target_step == FULL_TRACE || (target_step >= 0 && step == target_step)) {
-            std::string name = "tmp/step_" + std::to_string(step);
+            std::string name = "tmp/step_" + std::to_string(step) + ".dot";
             std::ofstream out(name);
             To_Graph(out);
-            std::string command = "dot -Tpng " + name + " -o " + name + ".png";
-            system(command.c_str());
+            // std::string command = "dot -Tpng " + name + " -o " + name + ".png";
+            // system(command.c_str());
         }
         step++;
     }
