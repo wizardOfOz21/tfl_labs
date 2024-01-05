@@ -15,14 +15,19 @@ class LRParser {
     std::unordered_map<int, std::unordered_set<gss_node_sp>> shift_map;
     std::vector<gss_node_sp> just_created;
     std::unordered_set<gss_node_sp> accepted;
+    std::unordered_set<parse_vertex_sp> stubs;
     int step = 0;
     int target_step = 0;
     std::string token;
-    int parse_vertex_count = 0;
+    std::unordered_map<std::string, int> parse_vertex_count;
 
     void next_step();
-    void To_Graph(std::ostream& out);
-    void To_Graph_Dfs(gss_node_sp& t, std::ostream& out,
+    void parse_tree_to_graph(std::ostream& out);
+    void parse_tree_to_graph_dfs(parse_vertex_sp& t, std::ostream& out,
+                                  unordered_set<parse_vertex_sp>& visited);
+
+    void stack_to_graph(std::ostream& out);
+    void stack_to_graph_dfs(gss_node_sp& t, std::ostream& out,
                       std::unordered_set<gss_node_sp>& visited);
     void init(int target_step);
     void update(gss_node_sp& target, const std::string& token);
