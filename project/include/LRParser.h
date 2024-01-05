@@ -18,6 +18,7 @@ class LRParser {
     int step = 0;
     int target_step = 0;
     std::string token;
+    int parse_vertex_count = 0;
 
     void next_step();
     void To_Graph(std::ostream& out);

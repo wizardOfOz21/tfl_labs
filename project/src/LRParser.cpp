@@ -80,11 +80,12 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
             system("mkdir tmp");
         }
         pos = 0;
+        step = 0;
+        parse_vertex_count = 0;
         reduce_stack = {};
         shift_map = {};
         just_created = {};
         accepted = {};
-        step = 0;
     }
 
     void LRParser::update(gss_node_sp& target, const std::string& token) {
@@ -149,7 +150,8 @@ std::string join(std::vector<std::string>& src, std::string delim = "") {
             for (auto shift : shift_map) {
                 int shift_state = shift.first;
                 auto shift_nodes = shift.second;
-                auto accum = gss_node::get_node(shift_nodes, shift_state);
+                auto parse_vertex = parse_vertex::get_vertex(token);
+                auto accum = gss_node::get_node(shift_nodes, shift_state, parse_vertex);
                 next_tops.insert(accum);
             }
             shift_map = {};
