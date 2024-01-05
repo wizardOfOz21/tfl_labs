@@ -16,3 +16,5 @@ main
 *.py
 .DS_Store
 tmp
+stack
+tree

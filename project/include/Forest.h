@@ -1,6 +1,7 @@
 #include <memory>
 #include <unordered_set>
 #include <vector>
+#include <string>
 
 struct parse_vertex;
 
@@ -9,7 +10,7 @@ using parse_vertex_sp = std::shared_ptr<parse_vertex>;
 struct parse_vertex {
     std::vector<std::vector<parse_vertex_sp>> paths;
     std::string name;
-    int index;
+    int index = 0;
 
     static parse_vertex_sp get_vertex(std::vector<parse_vertex_sp>& path,
                                       std::string& name, int index) {
