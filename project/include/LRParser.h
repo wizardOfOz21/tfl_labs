@@ -20,6 +20,7 @@ class LRParser {
     int target_step = 0;
     std::string token;
     std::unordered_map<std::string, int> parse_vertex_count;
+    std::vector<parse_vertex_sp> terminal_vertices;
 
     void next_step();
     void parse_tree_to_graph(std::ostream& out);
