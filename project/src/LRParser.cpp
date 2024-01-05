@@ -26,12 +26,12 @@ void LRParser::next_step() {
         std::ofstream tree_out(tree_name);
         stack_to_graph(stack_out);
         parse_tree_to_graph(tree_out);
-        std::string stack_command =
-            "dot -Tpng " + stack_name + " -o " + stack_name + ".png";
-        std::string tree_command =
-            "dot -Tpng " + tree_name + " -o " + tree_name + ".png";
-        system(stack_command.c_str());
-        system(tree_command.c_str());
+        // std::string stack_command =
+        //     "dot -Tpng " + stack_name + " -o " + stack_name + ".png";
+        // std::string tree_command =
+        //     "dot -Tpng " + tree_name + " -o " + tree_name + ".png";
+        // system(stack_command.c_str());
+        // system(tree_command.c_str());
     }
     step++;
 }
