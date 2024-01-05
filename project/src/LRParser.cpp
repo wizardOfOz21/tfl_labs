@@ -257,14 +257,8 @@ bool LRParser::parse(vector<string>& in, int target_step = NO_TRACE) {
                 if (is_parse_vertex_created) {
                     parse_vertex_count[rule.LHS]++;
                 }
-                if (i < paths.size() - 1) {
-                    reduce_stack.push_back(reduce);
-                    next_step();
-                    reduce_stack.pop_back();
-                } else {
-                    next_step();
-                }
             }
+            next_step();
         }
         //
         // Shift stage
