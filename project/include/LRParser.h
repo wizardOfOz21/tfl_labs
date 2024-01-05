@@ -4,7 +4,8 @@
 #include "GSS.h"
 #include "SLRTable.h"
 
-const int NO_TRACE = -2;
+const int LAST_TRACE = -3;
+const int NO_TRACE = -3;
 const int FULL_TRACE = -1;
 
 class LRParser {
@@ -32,6 +33,7 @@ class LRParser {
                       std::unordered_set<gss_node_sp>& visited);
     void init(int target_step);
     void update(gss_node_sp& target, const std::string& token);
+    void make_screen();
 
    public:
     LRParser(SLRTable& _table);

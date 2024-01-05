@@ -16,7 +16,8 @@ int main(int argc, char* argv[]) {
 
     auto& screenshot = program.add_mutually_exclusive_group();
     screenshot.add_argument("-s", "--step").help("specify the screen step.").scan<'i', int>();
-    screenshot.add_argument("-a", "--all").flag().help("enable full parse trace in tmp/ folder.");
+    screenshot.add_argument("-a", "--all").flag().help("enable full parse trace.");
+    screenshot.add_argument("-l", "--last").flag().help("only last screen.");
 
     try {
         program.parse_args(argc, argv);
@@ -48,13 +49,15 @@ int main(int argc, char* argv[]) {
     int step = NO_TRACE;
     if (auto fn = program.present<int>("-s")) {
         step = *fn;
-    } else  if (program["-a"] == true) {
-         step = FULL_TRACE;
+    } else if (program["-a"] == true) {
+        step = FULL_TRACE;
+    } else if (program["-l"] == true) {
+        step = LAST_TRACE;
     }
 
     Grammar gr(grammar_src);
     SLRTable t(gr);
-//     t.PrintTable(); // For printing table need to uncomment
+    //lt.PrintTable(); // For printing table need to uncomment
     LRParser parser(t);
     if (parser.parse(in, step)) {
         std::cout<<"SUCCESSFULLY PARSED"<<std::endl;

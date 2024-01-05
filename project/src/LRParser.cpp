@@ -17,15 +17,21 @@ string join(vector<string>& src, string delim = "") {
     return res;
 }
 
+void LRParser::make_screen() {
+    std::string stack_name = "stack/step_" + std::to_string(step) + ".dot";
+    std::string tree_name = "tree/step_" + std::to_string(step) + ".dot";
+    std::ofstream stack_out(stack_name);
+    std::ofstream tree_out(tree_name);
+    stack_to_graph(stack_out);
+    parse_tree_to_graph(tree_out);
+    stack_out.close();
+    tree_out.close();
+}
+
 void LRParser::next_step() {
     if (target_step == FULL_TRACE ||
         (target_step >= 0 && step == target_step)) {
-        std::string stack_name = "stack/step_" + std::to_string(step) + ".dot";
-        std::string tree_name = "tree/step_" + std::to_string(step) + ".dot";
-        std::ofstream stack_out(stack_name);
-        std::ofstream tree_out(tree_name);
-        stack_to_graph(stack_out);
-        parse_tree_to_graph(tree_out);
+        make_screen();
         // std::string stack_command =
         //     "dot -Tpng " + stack_name + " -o " + stack_name + ".png";
         // std::string tree_command =
@@ -44,20 +50,24 @@ string get_vertex_name(parse_vertex_sp pv, int i) {
 
 void LRParser::parse_tree_to_graph(std::ostream& out) {
     out << "digraph {" << std::endl;
-    out << "label=\"token  " << token << " : " << pos << "\"" << std::endl;
+    out << "label=\"sentence: ";
+    for (auto v : terminal_vertices) {
+        out << v->name << " ";
+    }
+    out << "\"" << std::endl;
     out << "node [shape=circle];" << std::endl;
     out << "compound=true;" << std::endl;
     out << "rank1 [style = invis];" << std::endl;
     out << "{" << std::endl;
     out << "rank = same;" << std::endl;
+    out << "node [shape=quad];" << std::endl;
     out << "rank1 " << std::endl;
     for (auto v : terminal_vertices) {
-        out << "-> " << get_vertex_name(v,1) << " ";
+        out << " -> " << get_vertex_name(v, 1) << std::endl;
     }
     out << " [style = invis];" << std::endl;
     out << "}" << std::endl;
-        std::unordered_set<parse_vertex_sp>
-            visited;
+    std::unordered_set<parse_vertex_sp> visited;
     for (auto pv : stubs) {
         parse_tree_to_graph_dfs(pv, out, visited);
     }
@@ -72,8 +82,8 @@ void LRParser::parse_tree_to_graph_dfs(
         out << "subgraph \"cluster_" << pv << "\" {" << std::endl;
         out << "style=filled;" << std::endl;
         out << "color=lightgrey;" << std::endl;
-        out << "label = \"" << pv->name << "\";" << std::endl;
-        ;
+        out << "label = <" << pv->name << "<SUB>" << pv->index << "</SUB>"
+            << ">;" << std::endl;
         for (int i = 0; i < pv->paths.size(); ++i) {
             auto p = pv->paths[i];
             string p_name = get_vertex_name(pv, i);
@@ -99,7 +109,9 @@ void LRParser::parse_tree_to_graph_dfs(
         return;
     }
     string p_name = get_vertex_name(pv, 1);
-    out << p_name << "[label=\"" << pv->name << "\"]" << std::endl;
+    out << p_name << "[label = <" << pv->name << "<SUB>" << pv->index
+        << "</SUB>"
+        << ">];" << std::endl;
     for (auto p : pv->paths) {
         for (auto child : p) {
             string c_name = get_vertex_name(child, 1);
@@ -118,7 +130,7 @@ void LRParser::parse_tree_to_graph_dfs(
 void LRParser::stack_to_graph(std::ostream& out) {
     out << "digraph {" << std::endl;
     out << "rankdir=RL" << std::endl;
-    out << "label=\"token  " << token << " : " << pos << "\"" << std::endl;
+    out << "label=\"next token: " << token << "\\npos: " << pos << "\"" << std::endl;
     out << "node [shape=box]" << std::endl;
     std::unordered_map<gss_node_sp, std::string> tops;
     std::unordered_set<gss_node_sp> visited;
@@ -155,8 +167,10 @@ void LRParser::stack_to_graph(std::ostream& out) {
 void LRParser::stack_to_graph_dfs(gss_node_sp& t, std::ostream& out,
                                   unordered_set<gss_node_sp>& visited) {
     visited.insert(t);
-    out << "\"" << t << "\" [label=\"" << t->state << " ("
-        << t->parse_vertex->name << ")\"]" << std::endl;
+    out << "\"" << t << "\" [label=<" << t->state << " ("
+        << t->parse_vertex->name << "<SUB>" << t->parse_vertex->index
+        << "</SUB>"
+        << ")>]" << std::endl;
     for (gss_node_sp child : t->childs) {
         out << "\"" << t << "\""
             << " -> "
@@ -169,7 +183,8 @@ void LRParser::stack_to_graph_dfs(gss_node_sp& t, std::ostream& out,
 
 void LRParser::init(int _target_step) {
     target_step = _target_step;
-    if (target_step == FULL_TRACE || target_step >= 0) {
+    if (target_step == LAST_TRACE || target_step == FULL_TRACE ||
+        target_step >= 0) {
         system("mkdir tree");
         system("mkdir stack");
     }
@@ -203,7 +218,7 @@ bool LRParser::parse(vector<string>& in, int target_step = NO_TRACE) {
     init(target_step);
     token = in[pos];
     std::string empty_string = "";
-    auto empty_vertex = parse_vertex::get_vertex(empty_string);
+    auto empty_vertex = parse_vertex::get_vertex(empty_string, 0);
     gss_node_sp bottom = gss_node::get_node(0, empty_vertex);
     update(bottom, in[pos]);
     next_step();
@@ -218,9 +233,8 @@ bool LRParser::parse(vector<string>& in, int target_step = NO_TRACE) {
             vector<Path> paths = gss_node::look(reduce.first, rule.RHS.size());
             for (int i = 0; i < paths.size(); ++i) {
                 Path& p = paths[i];
-                string name =
-                    rule.LHS + std::to_string(parse_vertex_count[rule.LHS]);
-                auto p_vertex = parse_vertex::get_vertex(p.vertices, name);
+                auto p_vertex = parse_vertex::get_vertex(
+                    p.vertices, rule.LHS, parse_vertex_count[rule.LHS]);
                 for (parse_vertex_sp pv : p.vertices) {
                     stubs.extract(pv);
                 }
@@ -263,9 +277,8 @@ bool LRParser::parse(vector<string>& in, int target_step = NO_TRACE) {
         //
         // Shift stage
         if (shift_map.size() != 0) {
-            string pv_name =
-                token + std::to_string(parse_vertex_count[token]++);
-            auto parse_vertex = parse_vertex::get_vertex(pv_name);
+            auto parse_vertex =
+                parse_vertex::get_vertex(token, parse_vertex_count[token]++);
             terminal_vertices.push_back(parse_vertex);
             stubs.insert(parse_vertex);
             std::unordered_set<gss_node_sp> next_tops;
@@ -287,9 +300,15 @@ bool LRParser::parse(vector<string>& in, int target_step = NO_TRACE) {
         //
         // Check stage
         if (accepted.size() != 0) {
+            if (target_step == LAST_TRACE) {
+                make_screen();
+            }
             return true;
         }
         if (reduce_stack.size() == 0 && shift_map.size() == 0) {
+            if (target_step == LAST_TRACE) {
+                make_screen();
+            }
             return false;
         }
         //
