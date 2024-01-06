@@ -18,7 +18,7 @@
 
 В папках stack и tree создаются только описания на языке dot, для преобразования их в картинки можно воспользоваться, например, командой для Windows:
 ```
-forfiles /P tmp /m "*.dot" /c "cmd /c dot -Tpng @file -o images/@fname.png"
+mkdir stack/images | forfiles /P stack /m "*.dot" /c "cmd /c dot -Tpng @file -o images/@fname.png"
 ```
 
 ## Входные данные
