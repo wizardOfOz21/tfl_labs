@@ -26,18 +26,18 @@ void LRParser::make_screen() {
     parse_tree_to_graph(tree_out);
     stack_out.close();
     tree_out.close();
+    // std::string stack_command =
+    //     "dot -Tpng " + stack_name + " -o " + stack_name + ".png";
+    // std::string tree_command =
+    //     "dot -Tpng " + tree_name + " -o " + tree_name + ".png";
+    // system(stack_command.c_str());
+    // system(tree_command.c_str());
 }
 
 void LRParser::next_step() {
     if (target_step == FULL_TRACE ||
         (target_step >= 0 && step == target_step)) {
         make_screen();
-        // std::string stack_command =
-        //     "dot -Tpng " + stack_name + " -o " + stack_name + ".png";
-        // std::string tree_command =
-        //     "dot -Tpng " + tree_name + " -o " + tree_name + ".png";
-        // system(stack_command.c_str());
-        // system(tree_command.c_str());
     }
     step++;
 }
@@ -60,7 +60,7 @@ void LRParser::parse_tree_to_graph(std::ostream& out) {
     out << "rank1 [style = invis];" << std::endl;
     out << "{" << std::endl;
     out << "rank = same;" << std::endl;
-    out << "node [shape=quad];" << std::endl;
+    out << "node [shape=box];" << std::endl;
     out << "rank1 " << std::endl;
     for (auto v : terminal_vertices) {
         out << " -> " << get_vertex_name(v, 1) << std::endl;
@@ -130,7 +130,8 @@ void LRParser::parse_tree_to_graph_dfs(
 void LRParser::stack_to_graph(std::ostream& out) {
     out << "digraph {" << std::endl;
     out << "rankdir=RL" << std::endl;
-    out << "label=\"next token: " << token << "\\npos: " << pos << "\"" << std::endl;
+    out << "label=\"next token: " << token << "\\npos: " << pos << "\""
+        << std::endl;
     out << "node [shape=box]" << std::endl;
     std::unordered_map<gss_node_sp, std::string> tops;
     std::unordered_set<gss_node_sp> visited;
