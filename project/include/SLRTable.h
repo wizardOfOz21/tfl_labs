@@ -83,7 +83,7 @@ private:
     void generateStates();
     void createParseTable();
     std::vector<std::string> follow(const std::string& nonTerm, std::unordered_set<std::string>& used);
-    std::vector<std::string> first(std::vector<std::string>& rule);
+    std::vector<std::string> first(std::vector<std::string>& rule, std::unordered_set<std::string>& used);
 
     bool isBelong(ExtendedRule rule,std::vector<ExtendedRule> arr);
     std::vector<int> getKeys(std::map<int,std::vector<ExtendedRule>>);

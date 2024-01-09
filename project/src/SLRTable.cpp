@@ -282,7 +282,7 @@ std::vector<std::string> strToVect(const std::string& str){
     return ans;
 }
 
-std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
+std::vector<std::string> SLRTable::first(std::vector<std::string>& rule, std::unordered_set<std::string>& used){
     if (rule[0]!=NOTHING && !rule.empty()) {
         if (rule[0]==EPSILON) {
             return {EPSILON};
@@ -293,15 +293,18 @@ std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
 
         if (dict.find(rule[0])!=dict.end()){
             std::vector<std::string> res;
-            auto rhs = dict[rule[0]];
-            for (std::string subRule : rhs){
-                auto subRuleVect= strToVect(subRule);
-                        auto inRes= first(subRuleVect);
-                        if (!inRes.empty() && inRes[0]!=NOTHING){
-                            for (auto t : inRes){
-                                res.push_back(t);
-                            }
+            if (used.find(rule[0])==used.end()){
+                used.insert(rule[0]);
+                auto rhs = dict[rule[0]];
+                for (std::string subRule : rhs){
+                    auto subRuleVect= strToVect(subRule);
+                    auto inRes= first(subRuleVect,used);
+                    if (!inRes.empty() && inRes[0]!=NOTHING){
+                        for (auto t : inRes){
+                            res.push_back(t);
                         }
+                    }
+                }
             }
             if (std::find(res.begin(), res.end(),EPSILON)==res.end()){
                 return res;
@@ -309,7 +312,7 @@ std::vector<std::string> SLRTable::first(std::vector<std::string>& rule){
             res.erase(std::remove(res.begin(), res.end(), EPSILON), res.end());
             if (res.size()>1){
                 auto sliced =slice(rule,1,rule.size()-1);
-                auto ansNew = first(sliced);
+                auto ansNew = first(sliced,used);
                 if (!ansNew.empty() && ansNew[0]!=NOTHING){
                     res.insert( res.end(), ansNew.begin(), ansNew.end());
                 }
@@ -348,7 +351,8 @@ std::vector<std::string> SLRTable::follow(const std::string& nonTerm, std::unord
                 subRuleVect = slice(subRuleVect,nonTermInd-subRuleVect.begin()+1,subRuleVect.size()-1);
                 std::vector<std::string> firstRes;
                 if (!subRuleVect.empty()){
-                    firstRes=first(subRuleVect);
+                    std::unordered_set<std::string> used1;
+                    firstRes=first(subRuleVect,used1);
                     if (std::find(firstRes.begin(), firstRes.end(),EPSILON)!=firstRes.end()){
                         firstRes.erase(std::remove(firstRes.begin(), firstRes.end(), EPSILON), firstRes.end());
                         auto ansNew = follow(curNonTerm,used);
