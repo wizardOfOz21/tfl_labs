@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
     Grammar gr(grammar_src);
     SLRTable t(gr);
-//    t.PrintTable(); // For printing table need to uncomment
+    t.PrintTable(); // For printing table need to uncomment
     LRParser parser(t);
     if (parser.parse(in, step)) {
         std::cout<<"SUCCESSFULLY PARSED"<<std::endl;
