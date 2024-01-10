@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   lab5:
-    container_name: lab5
-    build: .
+    build: ./
+    image: lab5
     volumes:
       - .:/project

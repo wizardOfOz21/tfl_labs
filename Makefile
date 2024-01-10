@@ -18,7 +18,7 @@ check:
 	cppcheck --language=c++ ./project/src/*.cpp ./main.cpp
 
 dev:
-	docker run --rm -it -v $(PWD):/project --name lab5 tfl_labs_lab5
+	docker run --rm -it -v $(PWD):/project lab5
 
 stop-docker:
 	docker stop tfl_labs-app
