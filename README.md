@@ -34,6 +34,17 @@ mkdir stack/images | forfiles /P stack /m "*.dot" /c "cmd /c dot -Tpng @file -o 
 
 ### Запуск
 
+0) Запустить проект в Docker
+```
+make run-docker-compose
+```
+```
+make dev
+```
+
+
+Дальнейшие команды запускать в появившемся терминале
+ 
 1) Сбилдить проект:
 ```
 $ make generate

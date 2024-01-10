@@ -1,8 +1,8 @@
 version: "3.9"
 
 services:
-  app:
-    container_name: app
+  lab5:
+    container_name: lab5
     build: .
     volumes:
       - .:/project
