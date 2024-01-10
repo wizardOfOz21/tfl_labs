@@ -156,7 +156,7 @@ std::vector<ExtendedRule> SLRTable::findClosure(std::vector<ExtendedRule>& inpSt
 
 void SLRTable::computeGOTO(int state){
     for (ExtendedRule rule : stateDict[state]) {
-        std::unordered_set<std::string> generateStatesFor;
+        std::set<std::string> generateStatesFor;
 
         if (rule.RHS[rule.RHS.size()-1]!=DOT){
             int dotInd = (std::find(rule.RHS.begin(),rule.RHS.end(),DOT) - rule.RHS.begin());
@@ -396,7 +396,7 @@ void SLRTable::createParseTable() {
         }
     }
 
-    std::unordered_map<int,ExtendedRule> processed;
+    std::map<int,ExtendedRule> processed;
     int c=0;
     for (ExtendedRule rule : extendedGrammarRules){
         auto tmpRule=rule;

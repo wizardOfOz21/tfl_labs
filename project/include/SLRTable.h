@@ -31,23 +31,9 @@ struct Actions {
     bool is_acc;
 };
 
+
 class SLRTable{
 private:
-    struct hash_pair {
-        template <class T1, class T2>
-        size_t operator()(const std::pair<T1, T2>& p) const
-        {
-            auto hash1 = std::hash<T1>{}(p.first);
-            auto hash2 = std::hash<T2>{}(p.second);
-
-            if (hash1 != hash2) {
-                return hash1 ^ hash2;
-            }
-
-            return hash1;
-        }
-    };
-
     struct Comp{
         bool operator()(const std::string& lhs, const std::string& rhs) const{
             if (std::string(1,lhs[lhs.size()-1])=="'"){
@@ -67,7 +53,7 @@ private:
     Grammar inputGrammar;
     std::vector<ExtendedRule> extendedGrammarRules;
     std::map<int,std::vector<ExtendedRule>> stateDict;
-    std::unordered_map<std::pair<int,std::string>,int, hash_pair> GOTOStateDict;
+    std::map<std::pair<int,std::string>,int> GOTOStateDict;
     std::vector<std::vector<std::string>> table;
     std::vector<std::string> cols;
 
